@@ -1,0 +1,150 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+}
+
+model User {
+  id           String   @id @default(cuid())
+  email        String   @unique
+  name         String
+  passwordHash String
+  phoneNumber  String   @default("")
+  address      String   @default("")
+  createdAt    DateTime @default(now())
+
+  emailVerified        Boolean   @default(false)
+  emailVerifyCode      String?
+  emailVerifyExpiresAt DateTime?
+
+  phoneVerified        Boolean   @default(false)
+  phoneVerifyCode      String?
+  phoneVerifyExpiresAt DateTime?
+
+  listings    Listing[]
+  orders      Order[]     @relation("BuyerOrders")
+  buyRequests BuyRequest[]
+}
+
+enum ListingStatus {
+  ACTIVE
+  SOLD
+  CANCELLED
+}
+
+model Listing {
+  id          String        @id @default(cuid())
+  title       String
+  eventName   String
+  venue       String
+  eventDate   DateTime
+  section     String?
+  quantity    Int           @default(1)
+  priceCents  Int
+  description String?
+  imageUrl    String?
+  status      ListingStatus @default(ACTIVE)
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+
+  seller   User   @relation(fields: [sellerId], references: [id])
+  sellerId String
+
+  order Order?
+
+  // If this listing was created in response to a buy request, linking it
+  // here lets the request auto-close once this listing sells.
+  fulfillsRequest   BuyRequest? @relation(fields: [fulfillsRequestId], references: [id])
+  fulfillsRequestId String?
+}
+
+enum OrderStatus {
+  PENDING
+  COMPLETED
+  CANCELLED
+}
+
+model Order {
+  id                 String      @id @default(cuid())
+  status             OrderStatus @default(COMPLETED)
+  totalCents         Int
+  platformFeeCents   Int         @default(0)
+  sellerPayoutCents  Int         @default(0)
+  createdAt          DateTime    @default(now())
+
+  listing   Listing @relation(fields: [listingId], references: [id])
+  listingId String  @unique
+
+  buyer   User   @relation("BuyerOrders", fields: [buyerId], references: [id])
+  buyerId String
+}
+
+enum BuyRequestStatus {
+  OPEN
+  FULFILLED
+  CANCELLED
+}
+
+model BuyRequest {
+  id            String           @id @default(cuid())
+  eventName     String
+  venue         String?
+  eventDate     DateTime
+  quantity      Int              @default(1)
+  maxPriceCents Int
+  notes         String?
+  imageUrl      String?
+  status        BuyRequestStatus @default(OPEN)
+  createdAt     DateTime         @default(now())
+  updatedAt     DateTime         @updatedAt
+
+  buyer   User   @relation(fields: [buyerId], references: [id])
+  buyerId String
+
+  fulfillingListings Listing[]
+}
+
+model AdminNotification {
+  id      String @id @default(cuid())
+  message String
+
+  eventName String
+  eventDate DateTime
+
+  buyerName  String
+  buyerPhone String
+  buyerEmail String
+
+  sellerName  String
+  sellerPhone String
+  sellerEmail String
+
+  buyRequestId String
+  listingId    String
+
+  readAt    DateTime?
+  createdAt DateTime  @default(now())
+}
+
+model PlatformSettings {
+  id String @id @default("singleton")
+
+  // Fee tiers: rate1 applies up to tier1MaxBaht, rate2 up to tier2MaxBaht, rate3 above that.
+  tier1MaxBaht Int   @default(1000)
+  tier1Rate    Float @default(0.05)
+  tier2MaxBaht Int   @default(5000)
+  tier2Rate    Float @default(0.04)
+  tier3Rate    Float @default(0.03)
+
+  // Comma-separated list of account emails permitted to view /admin.
+  adminEmails String @default("")
+
+  // Public contact identities shown to platform users.
+  lineId       String?
+  instagramId  String?
+  phoneNumber  String?
+
+  updatedAt DateTime @updatedAt
+}
