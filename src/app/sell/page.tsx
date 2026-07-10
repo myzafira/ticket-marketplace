@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, type FormEvent } from "react";
+import { Suspense, useEffect, useState, type FormEvent } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useSession } from "@/components/SessionProvider";
 import { checkListingFieldsForContactInfo } from "@/lib/moderation";
@@ -9,6 +9,18 @@ import ImageUploadField from "@/components/ImageUploadField";
 type FeeTierInfo = { label: string; ratePercent: number };
 
 export default function SellPage() {
+  return (
+    <Suspense
+      fallback={
+        <p className="mx-auto max-w-xl px-4 py-8 text-gray-500">Loading…</p>
+      }
+    >
+      <SellForm />
+    </Suspense>
+  );
+}
+
+function SellForm() {
   const { user, loading } = useSession();
   const router = useRouter();
   const searchParams = useSearchParams();
