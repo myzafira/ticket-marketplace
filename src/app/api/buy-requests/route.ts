@@ -5,6 +5,7 @@ import { getCurrentUser, isFullyVerified } from "@/lib/auth";
 import { bahtToCents } from "@/lib/format";
 import { toPublicHandle } from "@/lib/identity";
 import { checkListingFieldsForContactInfo } from "@/lib/moderation";
+import { imageUrlSchema } from "@/lib/imageUrl";
 
 const createBuyRequestSchema = z.object({
   eventName: z.string().min(1).max(150),
@@ -15,7 +16,7 @@ const createBuyRequestSchema = z.object({
   quantity: z.number().int().min(1).max(20),
   maxPrice: z.number().positive(),
   notes: z.string().max(2000).optional(),
-  imageUrl: z.string().startsWith("/uploads/").optional(),
+  imageUrl: imageUrlSchema,
 });
 
 export async function GET(request: Request) {

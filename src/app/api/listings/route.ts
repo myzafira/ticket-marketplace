@@ -6,6 +6,7 @@ import { bahtToCents } from "@/lib/format";
 import { toPublicHandle } from "@/lib/identity";
 import { checkListingFieldsForContactInfo } from "@/lib/moderation";
 import { notifyAdminOfMatch, notifyPartiesOfMatch } from "@/lib/notifications";
+import { imageUrlSchema } from "@/lib/imageUrl";
 
 const createListingSchema = z.object({
   title: z.string().min(1).max(150),
@@ -19,7 +20,7 @@ const createListingSchema = z.object({
   price: z.number().positive(),
   description: z.string().max(2000).optional(),
   fulfillsRequestId: z.string().optional(),
-  imageUrl: z.string().startsWith("/uploads/").optional(),
+  imageUrl: imageUrlSchema,
 });
 
 export async function GET(request: Request) {
