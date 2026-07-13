@@ -57,7 +57,9 @@ export default function Navbar() {
                 </Link>
               )}
               <span className="text-gray-400">|</span>
-              <span className="text-gray-700">Hi, {user.name}</span>
+              <Link href="/account" className="text-gray-700 hover:underline">
+                Hi, {user.name}
+              </Link>
               <button
                 onClick={handleLogout}
                 className="rounded bg-gray-100 px-3 py-1.5 text-gray-700 hover:bg-gray-200"
