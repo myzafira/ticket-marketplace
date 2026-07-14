@@ -8,6 +8,7 @@ import { checkListingFieldsForContactInfo } from "@/lib/moderation";
 import { notifyAdminOfMatch, notifyPartiesOfMatch } from "@/lib/notifications";
 import { imageUrlSchema } from "@/lib/imageUrl";
 import { getRatingSummaries } from "@/lib/ratings";
+import { findBestMatchingRequest } from "@/lib/matching";
 
 const createListingSchema = z.object({
   title: z.string().min(1).max(150),
@@ -117,6 +118,17 @@ export async function POST(request: Request) {
     if (buyRequest && buyRequest.status === "OPEN") {
       linkedRequest = buyRequest;
     }
+  } else {
+    // Seller didn't respond to a specific request — check whether this
+    // listing happens to satisfy an open one anyway (same event/date/venue,
+    // within budget, enough tickets) so the buyer gets notified either way.
+    linkedRequest = await findBestMatchingRequest({
+      eventName,
+      venue,
+      eventDate: new Date(eventDate),
+      priceCents: bahtToCents(price),
+      quantity,
+    });
   }
 
   const listing = await db.listing.create({
