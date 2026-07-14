@@ -186,7 +186,7 @@ export default function BuyRequestDetailPage({
             >
               Log in to respond
             </a>
-          ) : !user.emailVerified || !user.phoneVerified ? (
+          ) : !user.emailVerified ? (
             <a
               href="/verify"
               className="rounded-lg bg-indigo-600 px-5 py-2.5 font-medium text-white hover:bg-indigo-700"

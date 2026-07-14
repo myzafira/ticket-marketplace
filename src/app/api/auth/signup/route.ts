@@ -3,7 +3,11 @@ import bcrypt from "bcryptjs";
 import { z } from "zod";
 import { db } from "@/lib/db";
 import { createSession } from "@/lib/auth";
-import { codeExpiry, generateVerificationCode } from "@/lib/verification";
+import {
+  codeExpiry,
+  generateVerificationCode,
+  sendVerificationEmail,
+} from "@/lib/verification";
 import { checkAddressLooksReal } from "@/lib/addressValidation";
 
 const signupSchema = z.object({
@@ -45,7 +49,6 @@ export async function POST(request: Request) {
 
   const passwordHash = await bcrypt.hash(password, 10);
   const emailVerifyCode = generateVerificationCode();
-  const phoneVerifyCode = generateVerificationCode();
   const expiresAt = codeExpiry();
 
   const user = await db.user.create({
@@ -57,18 +60,17 @@ export async function POST(request: Request) {
       address,
       emailVerifyCode,
       emailVerifyExpiresAt: expiresAt,
-      phoneVerifyCode,
-      phoneVerifyExpiresAt: expiresAt,
     },
     select: { id: true, name: true, email: true },
   });
 
   await createSession(user.id);
+  const { sent } = await sendVerificationEmail(email, emailVerifyCode);
 
-  // Stubbed: no SMS/email provider is wired up, so the codes are returned
-  // directly instead of actually being sent. See lib/verification.ts.
   return NextResponse.json(
-    { user, devEmailCode: emailVerifyCode, devPhoneCode: phoneVerifyCode },
+    // devEmailCode is only included when real delivery isn't configured
+    // (no RESEND_API_KEY), so local/dev setups without it still work.
+    { user, devEmailCode: sent ? undefined : emailVerifyCode },
     { status: 201 }
   );
 }

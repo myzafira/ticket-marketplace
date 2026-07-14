@@ -16,7 +16,7 @@ export async function POST(
   }
   if (!isFullyVerified(user)) {
     return NextResponse.json(
-      { error: "Verify your email and phone number before buying a ticket" },
+      { error: "Verify your email before buying a ticket" },
       { status: 403 }
     );
   }

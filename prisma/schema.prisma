@@ -22,10 +22,6 @@ model User {
   emailVerifyCode      String?
   emailVerifyExpiresAt DateTime?
 
-  phoneVerified        Boolean   @default(false)
-  phoneVerifyCode      String?
-  phoneVerifyExpiresAt DateTime?
-
   listings    Listing[]
   orders      Order[]     @relation("BuyerOrders")
   buyRequests BuyRequest[]

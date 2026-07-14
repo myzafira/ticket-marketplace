@@ -1,7 +1,4 @@
-// Stubbed verification: no SMS/email provider is wired up yet, so codes are
-// generated and returned directly to the client instead of being sent.
-// Swap in a real provider (e.g. Twilio for SMS, Resend for email) by having
-// `sendCode` below actually dispatch instead of returning the code.
+import { sendEmail } from "@/lib/email";
 
 const CODE_TTL_MS = 15 * 60 * 1000;
 
@@ -21,4 +18,16 @@ export function isCodeValid(
   if (!storedCode || !expiresAt) return false;
   if (expiresAt.getTime() < Date.now()) return false;
   return storedCode === submittedCode.trim();
+}
+
+export async function sendVerificationEmail(to: string, code: string) {
+  return sendEmail({
+    to,
+    subject: "Verify your TicketRight account",
+    html: `
+      <p>Your verification code is:</p>
+      <p style="font-size: 28px; font-weight: bold; letter-spacing: 4px;">${code}</p>
+      <p>This code expires in 15 minutes. If you didn't request this, you can ignore this email.</p>
+    `,
+  });
 }

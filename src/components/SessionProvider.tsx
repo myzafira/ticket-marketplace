@@ -10,7 +10,6 @@ export type SessionUser = {
   phoneNumber: string;
   address: string;
   emailVerified: boolean;
-  phoneVerified: boolean;
   isAdmin: boolean;
 } | null;
 

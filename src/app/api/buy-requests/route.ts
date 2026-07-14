@@ -60,7 +60,7 @@ export async function POST(request: Request) {
   }
   if (!isFullyVerified(user)) {
     return NextResponse.json(
-      { error: "Verify your email and phone number before posting a request" },
+      { error: "Verify your email before posting a request" },
       { status: 403 }
     );
   }

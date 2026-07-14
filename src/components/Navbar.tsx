@@ -15,8 +15,7 @@ export default function Navbar() {
     router.refresh();
   }
 
-  const needsVerification =
-    !loading && user && (!user.emailVerified || !user.phoneVerified);
+  const needsVerification = !loading && user && !user.emailVerified;
 
   return (
     <header className="border-b bg-white">
@@ -93,7 +92,7 @@ export default function Navbar() {
         <div className="bg-amber-50 px-4 py-2 text-center text-sm text-amber-800">
           Your account isn&apos;t verified yet.{" "}
           <Link href="/verify" className="font-medium underline">
-            Verify your email and phone
+            Verify your email
           </Link>{" "}
           to buy or sell tickets.
         </div>

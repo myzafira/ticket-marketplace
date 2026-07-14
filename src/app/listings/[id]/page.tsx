@@ -82,8 +82,7 @@ export default function ListingDetailPage({
   const eventDate = new Date(listing.eventDate);
   const isOwner = user && user.id === listing.sellerId;
   const isSold = listing.status !== "ACTIVE";
-  const needsVerification =
-    user && (!user.emailVerified || !user.phoneVerified);
+  const needsVerification = user && !user.emailVerified;
 
   return (
     <div className="mx-auto max-w-2xl px-4 py-8">
@@ -223,7 +222,7 @@ export default function ListingDetailPage({
             {needsVerification ? (
               <p className="text-sm text-gray-500">
                 <a href="/verify" className="text-indigo-600 underline">
-                  Verify your email and phone
+                  Verify your email
                 </a>{" "}
                 to message the seller.
               </p>

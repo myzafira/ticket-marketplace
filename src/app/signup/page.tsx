@@ -38,7 +38,7 @@ export default function SignupPage() {
       if (!res.ok) throw new Error(data.error ?? "Failed to sign up");
       sessionStorage.setItem(
         "devVerificationCodes",
-        JSON.stringify({ email: data.devEmailCode, phone: data.devPhoneCode })
+        JSON.stringify({ email: data.devEmailCode })
       );
       await refresh();
       router.push("/verify");

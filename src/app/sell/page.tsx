@@ -114,13 +114,13 @@ function SellForm() {
     );
   }
 
-  if (!user.emailVerified || !user.phoneVerified) {
+  if (!user.emailVerified) {
     return (
       <div className="mx-auto max-w-xl px-4 py-8">
         <p className="text-gray-700">
           You need to{" "}
           <a href="/verify" className="text-indigo-600 underline">
-            verify your email and phone number
+            verify your email
           </a>{" "}
           before listing a ticket for sale.
         </p>

@@ -48,7 +48,6 @@ export async function getCurrentUser() {
         phoneNumber: true,
         address: true,
         emailVerified: true,
-        phoneVerified: true,
         createdAt: true,
       },
     });
@@ -64,6 +63,6 @@ export async function getCurrentUser() {
   }
 }
 
-export function isFullyVerified(user: { emailVerified: boolean; phoneVerified: boolean }) {
-  return user.emailVerified && user.phoneVerified;
+export function isFullyVerified(user: { emailVerified: boolean }) {
+  return user.emailVerified;
 }
