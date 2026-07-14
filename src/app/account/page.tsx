@@ -100,7 +100,7 @@ export default function AccountPage() {
       <h2 className="mb-1 font-semibold text-gray-900">Public nickname</h2>
       <p className="mb-3 text-sm text-gray-500">
         Shown to other buyers/sellers instead of a random code, e.g.{" "}
-        <span className="font-medium">TicketFan88-A1B2</span>. Don&apos;t use
+        <span className="font-medium">TicketFan88-A1</span>. Don&apos;t use
         your real name or any contact info — it&apos;s still checked and
         blocked either way.
       </p>

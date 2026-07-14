@@ -13,7 +13,7 @@ function shortCode(userId: string) {
 export function toPublicHandle(user: { id: string; nickname: string | null }) {
   const code = shortCode(user.id);
   if (user.nickname) {
-    return `${user.nickname}-${code.slice(-4)}`;
+    return `${user.nickname}-${code.slice(-2)}`;
   }
   return code;
 }
