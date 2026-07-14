@@ -15,8 +15,14 @@ export async function GET() {
     },
     orderBy: { updatedAt: "desc" },
     include: {
-      listing: { select: { id: true, eventName: true, sellerId: true } },
-      buyer: { select: { id: true } },
+      listing: {
+        select: {
+          id: true,
+          eventName: true,
+          seller: { select: { id: true, nickname: true } },
+        },
+      },
+      buyer: { select: { id: true, nickname: true } },
       messages: { orderBy: { createdAt: "desc" }, take: 1 },
     },
   });
@@ -24,12 +30,12 @@ export async function GET() {
   return NextResponse.json({
     conversations: conversations.map((c) => {
       const iAmBuyer = c.buyerId === user.id;
-      const otherPartyId = iAmBuyer ? c.listing.sellerId : c.buyer.id;
+      const otherParty = iAmBuyer ? c.listing.seller : c.buyer;
       return {
         id: c.id,
         role: iAmBuyer ? ("buyer" as const) : ("seller" as const),
         listing: { id: c.listing.id, eventName: c.listing.eventName },
-        otherParty: { handle: toPublicHandle(otherPartyId) },
+        otherParty: { handle: toPublicHandle(otherParty) },
         lastMessage: c.messages[0]?.body ?? null,
         updatedAt: c.updatedAt,
       };

@@ -13,6 +13,9 @@ model User {
   passwordHash String
   phoneNumber  String   @default("")
   address      String   @default("")
+  // Self-chosen public alias shown to other users instead of a bare code —
+  // never the real name. A short system suffix is appended for uniqueness.
+  nickname     String?
   createdAt    DateTime @default(now())
 
   emailVerified        Boolean   @default(false)

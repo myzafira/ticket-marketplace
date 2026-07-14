@@ -15,7 +15,7 @@ export async function GET() {
     include: {
       order: {
         include: {
-          buyer: { select: { id: true } },
+          buyer: { select: { id: true, nickname: true } },
           reviews: { where: { reviewerId: user.id } },
         },
       },
@@ -30,7 +30,7 @@ export async function GET() {
         ...l,
         order: {
           ...order,
-          buyer: { handle: toPublicHandle(l.order.buyer.id) },
+          buyer: { handle: toPublicHandle(l.order.buyer) },
           myReview: reviews[0]
             ? { rating: reviews[0].rating, comment: reviews[0].comment }
             : null,

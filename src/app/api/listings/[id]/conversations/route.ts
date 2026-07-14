@@ -26,7 +26,7 @@ export async function GET(
     where: { listingId: id },
     orderBy: { updatedAt: "desc" },
     include: {
-      buyer: { select: { id: true } },
+      buyer: { select: { id: true, nickname: true } },
       messages: { orderBy: { createdAt: "desc" }, take: 1 },
     },
   });
@@ -34,7 +34,7 @@ export async function GET(
   return NextResponse.json({
     conversations: conversations.map((c) => ({
       id: c.id,
-      buyer: { handle: toPublicHandle(c.buyer.id) },
+      buyer: { handle: toPublicHandle(c.buyer) },
       lastMessage: c.messages[0]?.body ?? null,
       updatedAt: c.updatedAt,
     })),

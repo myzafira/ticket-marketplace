@@ -13,7 +13,7 @@ export async function GET() {
     where: { buyerId: user.id },
     orderBy: { createdAt: "desc" },
     include: {
-      listing: { include: { seller: { select: { id: true } } } },
+      listing: { include: { seller: { select: { id: true, nickname: true } } } },
       reviews: { where: { reviewerId: user.id } },
     },
   });
@@ -23,7 +23,7 @@ export async function GET() {
       ...o,
       listing: {
         ...o.listing,
-        seller: { handle: toPublicHandle(o.listing.seller.id) },
+        seller: { handle: toPublicHandle(o.listing.seller) },
       },
       myReview: reviews[0]
         ? { rating: reviews[0].rating, comment: reviews[0].comment }

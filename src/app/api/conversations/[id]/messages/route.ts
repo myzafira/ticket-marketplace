@@ -13,8 +13,15 @@ async function loadConversationForParticipant(id: string, userId: string) {
   const conversation = await db.conversation.findUnique({
     where: { id },
     include: {
-      listing: { select: { id: true, eventName: true, sellerId: true } },
-      buyer: { select: { id: true } },
+      listing: {
+        select: {
+          id: true,
+          eventName: true,
+          sellerId: true,
+          seller: { select: { id: true, nickname: true } },
+        },
+      },
+      buyer: { select: { id: true, nickname: true } },
     },
   });
   if (!conversation) return { error: "not_found" as const };
@@ -48,16 +55,16 @@ export async function GET(
     orderBy: { createdAt: "asc" },
   });
 
-  const otherPartyId =
+  const otherParty =
     conversation.buyerId === user.id
-      ? conversation.listing.sellerId
-      : conversation.buyer.id;
+      ? conversation.listing.seller
+      : conversation.buyer;
 
   return NextResponse.json({
     conversation: {
       id: conversation.id,
       listing: { id: conversation.listing.id, eventName: conversation.listing.eventName },
-      otherParty: { handle: toPublicHandle(otherPartyId) },
+      otherParty: { handle: toPublicHandle(otherParty) },
     },
     messages: messages.map((m) => ({
       id: m.id,

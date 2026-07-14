@@ -40,7 +40,7 @@ export async function getRecentReviews(userId: string, limit = 5) {
     where: { revieweeId: userId },
     orderBy: { createdAt: "desc" },
     take: limit,
-    include: { reviewer: { select: { id: true } } },
+    include: { reviewer: { select: { id: true, nickname: true } } },
   });
   return reviews;
 }

@@ -24,7 +24,7 @@ export async function GET() {
   return NextResponse.json({
     buyRequests: buyRequests.map((r) => ({
       ...r,
-      buyer: { handle: toPublicHandle(user.id) },
+      buyer: { handle: toPublicHandle(user) },
     })),
   });
 }

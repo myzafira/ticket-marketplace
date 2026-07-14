@@ -11,7 +11,7 @@ export async function GET(
   const { id } = await params;
   const listing = await db.listing.findUnique({
     where: { id },
-    include: { seller: { select: { id: true } } },
+    include: { seller: { select: { id: true, nickname: true } } },
   });
 
   if (!listing) {
@@ -27,14 +27,14 @@ export async function GET(
     listing: {
       ...listing,
       seller: {
-        handle: toPublicHandle(listing.seller.id),
+        handle: toPublicHandle(listing.seller),
         rating,
         recentReviews: recentReviews.map((r) => ({
           id: r.id,
           rating: r.rating,
           comment: r.comment,
           createdAt: r.createdAt,
-          reviewer: { handle: toPublicHandle(r.reviewer.id) },
+          reviewer: { handle: toPublicHandle(r.reviewer) },
         })),
       },
     },

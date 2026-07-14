@@ -14,7 +14,7 @@ export async function GET() {
     db.review.findMany({
       where: { revieweeId: user.id },
       orderBy: { createdAt: "desc" },
-      include: { reviewer: { select: { id: true } } },
+      include: { reviewer: { select: { id: true, nickname: true } } },
     }),
     getRatingSummary(user.id),
   ]);
@@ -26,7 +26,7 @@ export async function GET() {
       rating: r.rating,
       comment: r.comment,
       createdAt: r.createdAt,
-      reviewer: { handle: toPublicHandle(r.reviewer.id) },
+      reviewer: { handle: toPublicHandle(r.reviewer) },
     })),
   });
 }

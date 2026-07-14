@@ -43,7 +43,7 @@ export async function GET(request: Request) {
         : {}),
     },
     orderBy: { eventDate: "asc" },
-    include: { seller: { select: { id: true } } },
+    include: { seller: { select: { id: true, nickname: true } } },
   });
 
   const ratings = await getRatingSummaries(listings.map((l) => l.seller.id));
@@ -52,7 +52,7 @@ export async function GET(request: Request) {
     listings: listings.map((l) => ({
       ...l,
       seller: {
-        handle: toPublicHandle(l.seller.id),
+        handle: toPublicHandle(l.seller),
         rating: ratings.get(l.seller.id) ?? { average: null, count: 0 },
       },
     })),
