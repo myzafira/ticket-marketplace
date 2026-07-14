@@ -4,13 +4,20 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useSession } from "@/components/SessionProvider";
 import { formatCents } from "@/lib/format";
-import type { BuyRequest, Listing, Order } from "@/lib/types";
+import ReviewForm from "@/components/ReviewForm";
+import StarRating from "@/components/StarRating";
+import type { BuyRequest, Listing, Order, RatingSummary, ReviewSummary } from "@/lib/types";
 
 export default function DashboardPage() {
   const { user, loading: loadingSession } = useSession();
   const [listings, setListings] = useState<Listing[]>([]);
   const [orders, setOrders] = useState<Order[]>([]);
   const [buyRequests, setBuyRequests] = useState<BuyRequest[]>([]);
+  const [myRatingSummary, setMyRatingSummary] = useState<RatingSummary>({
+    average: null,
+    count: 0,
+  });
+  const [myReviews, setMyReviews] = useState<ReviewSummary[]>([]);
   const [loading, setLoading] = useState(true);
   const [cancellingId, setCancellingId] = useState<string | null>(null);
   const [updatingRequestId, setUpdatingRequestId] = useState<string | null>(null);
@@ -25,11 +32,14 @@ export default function DashboardPage() {
       fetch("/api/me/listings").then((r) => r.json()),
       fetch("/api/me/orders").then((r) => r.json()),
       fetch("/api/me/buy-requests").then((r) => r.json()),
+      fetch("/api/me/reviews").then((r) => r.json()),
     ])
-      .then(([listingsData, ordersData, buyRequestsData]) => {
+      .then(([listingsData, ordersData, buyRequestsData, reviewsData]) => {
         setListings(listingsData.listings ?? []);
         setOrders(ordersData.orders ?? []);
         setBuyRequests(buyRequestsData.buyRequests ?? []);
+        setMyRatingSummary(reviewsData.summary ?? { average: null, count: 0 });
+        setMyReviews(reviewsData.reviews ?? []);
       })
       .finally(() => setLoading(false));
   }, [user]);
@@ -156,6 +166,35 @@ export default function DashboardPage() {
                       </span>
                     </p>
                   )}
+                  {listing.order && (
+                    <div className="mt-2">
+                      {listing.order.myReview ? (
+                        <p className="text-xs text-gray-500">
+                          You rated the buyer:{" "}
+                          <StarRating
+                            summary={{
+                              average: listing.order.myReview.rating,
+                              count: 1,
+                            }}
+                          />
+                        </p>
+                      ) : (
+                        <ReviewForm
+                          orderId={listing.order.id}
+                          label="Rate buyer"
+                          onSubmitted={(review) =>
+                            setListings((prev) =>
+                              prev.map((l) =>
+                                l.id === listing.id && l.order
+                                  ? { ...l, order: { ...l.order, myReview: review } }
+                                  : l
+                              )
+                            )
+                          }
+                        />
+                      )}
+                    </div>
+                  )}
                 </div>
                 <div className="flex items-center gap-3">
                   <p className="font-semibold text-indigo-600">
@@ -206,6 +245,28 @@ export default function DashboardPage() {
                     {order.listing.venue} · Sold by Seller #
                     {order.listing.seller.handle}
                   </p>
+                  <div className="mt-2">
+                    {order.myReview ? (
+                      <p className="text-xs text-gray-500">
+                        You rated the seller:{" "}
+                        <StarRating
+                          summary={{ average: order.myReview.rating, count: 1 }}
+                        />
+                      </p>
+                    ) : (
+                      <ReviewForm
+                        orderId={order.id}
+                        label="Rate seller"
+                        onSubmitted={(review) =>
+                          setOrders((prev) =>
+                            prev.map((o) =>
+                              o.id === order.id ? { ...o, myReview: review } : o
+                            )
+                          )
+                        }
+                      />
+                    )}
+                  </div>
                 </div>
                 <p className="font-semibold text-indigo-600">
                   {formatCents(order.totalCents)}
@@ -292,6 +353,39 @@ export default function DashboardPage() {
                     </>
                   )}
                 </div>
+              </div>
+            ))}
+          </div>
+        )}
+      </section>
+
+      <section className="mt-10">
+        <div className="mb-3 flex items-center gap-2">
+          <h2 className="text-lg font-semibold text-gray-900">
+            Reviews about you
+          </h2>
+          <StarRating summary={myRatingSummary} size="md" />
+        </div>
+        {myReviews.length === 0 ? (
+          <p className="text-gray-500">No reviews yet.</p>
+        ) : (
+          <div className="divide-y rounded-lg border bg-white">
+            {myReviews.map((review) => (
+              <div key={review.id} className="p-4">
+                <div className="flex items-center justify-between">
+                  <StarRating
+                    summary={{ average: review.rating, count: 1 }}
+                  />
+                  <span className="text-xs text-gray-400">
+                    from #{review.reviewer.handle} ·{" "}
+                    {new Date(review.createdAt).toLocaleDateString()}
+                  </span>
+                </div>
+                {review.comment && (
+                  <p className="mt-1 text-sm text-gray-700">
+                    {review.comment}
+                  </p>
+                )}
               </div>
             ))}
           </div>

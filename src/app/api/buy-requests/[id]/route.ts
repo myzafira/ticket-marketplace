@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import { getCurrentUser } from "@/lib/auth";
 import { toPublicHandle } from "@/lib/identity";
+import { getRatingSummary, getRecentReviews } from "@/lib/ratings";
 
 export async function GET(
   _request: Request,
@@ -17,10 +18,25 @@ export async function GET(
     return NextResponse.json({ error: "Request not found" }, { status: 404 });
   }
 
+  const [rating, recentReviews] = await Promise.all([
+    getRatingSummary(buyRequest.buyer.id),
+    getRecentReviews(buyRequest.buyer.id),
+  ]);
+
   return NextResponse.json({
     buyRequest: {
       ...buyRequest,
-      buyer: { handle: toPublicHandle(buyRequest.buyer.id) },
+      buyer: {
+        handle: toPublicHandle(buyRequest.buyer.id),
+        rating,
+        recentReviews: recentReviews.map((r) => ({
+          id: r.id,
+          rating: r.rating,
+          comment: r.comment,
+          createdAt: r.createdAt,
+          reviewer: { handle: toPublicHandle(r.reviewer.id) },
+        })),
+      },
     },
   });
 }

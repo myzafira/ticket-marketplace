@@ -14,16 +14,20 @@ export async function GET() {
     orderBy: { createdAt: "desc" },
     include: {
       listing: { include: { seller: { select: { id: true } } } },
+      reviews: { where: { reviewerId: user.id } },
     },
   });
 
   return NextResponse.json({
-    orders: orders.map((o) => ({
+    orders: orders.map(({ reviews, ...o }) => ({
       ...o,
       listing: {
         ...o.listing,
         seller: { handle: toPublicHandle(o.listing.seller.id) },
       },
+      myReview: reviews[0]
+        ? { rating: reviews[0].rating, comment: reviews[0].comment }
+        : null,
     })),
   });
 }

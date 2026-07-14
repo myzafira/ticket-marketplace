@@ -1,3 +1,13 @@
+export type RatingSummary = { average: number | null; count: number };
+
+export type ReviewSummary = {
+  id: string;
+  rating: number;
+  comment: string | null;
+  createdAt: string;
+  reviewer: { handle: string };
+};
+
 export type Listing = {
   id: string;
   title: string;
@@ -13,13 +23,18 @@ export type Listing = {
   sellerId: string;
   createdAt: string;
   fulfillsRequestId: string | null;
-  seller: { handle: string };
+  seller: {
+    handle: string;
+    rating?: RatingSummary;
+    recentReviews?: ReviewSummary[];
+  };
   order?: {
     id: string;
     totalCents: number;
     platformFeeCents: number;
     sellerPayoutCents: number;
     buyer: { handle: string };
+    myReview?: { rating: number; comment: string | null } | null;
   } | null;
 };
 
@@ -31,6 +46,7 @@ export type Order = {
   createdAt: string;
   status: "PENDING" | "COMPLETED" | "CANCELLED";
   listing: Listing;
+  myReview?: { rating: number; comment: string | null } | null;
 };
 
 export type BuyRequest = {
@@ -45,6 +61,10 @@ export type BuyRequest = {
   status: "OPEN" | "FULFILLED" | "CANCELLED";
   buyerId: string;
   createdAt: string;
-  buyer: { handle: string };
+  buyer: {
+    handle: string;
+    rating?: RatingSummary;
+    recentReviews?: ReviewSummary[];
+  };
   fulfillingListings?: { id: string; priceCents: number }[];
 };

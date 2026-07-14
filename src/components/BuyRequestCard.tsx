@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { formatCents } from "@/lib/format";
+import StarRating from "@/components/StarRating";
 import type { BuyRequest } from "@/lib/types";
 
 export default function BuyRequestCard({
@@ -42,6 +43,11 @@ export default function BuyRequestCard({
                 day: "numeric",
               })}
             </p>
+            {request.buyer.rating && (
+              <p className="mt-1">
+                <StarRating summary={request.buyer.rating} />
+              </p>
+            )}
           </div>
         </div>
         <div className="text-right">

@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { formatCents } from "@/lib/format";
+import StarRating from "@/components/StarRating";
 import type { Listing } from "@/lib/types";
 
 export default function ListingCard({ listing }: { listing: Listing }) {
@@ -36,6 +37,11 @@ export default function ListingCard({ listing }: { listing: Listing }) {
             {listing.section && (
               <p className="mt-1 text-xs text-gray-400">
                 Section {listing.section}
+              </p>
+            )}
+            {listing.seller.rating && (
+              <p className="mt-1">
+                <StarRating summary={listing.seller.rating} />
               </p>
             )}
           </div>

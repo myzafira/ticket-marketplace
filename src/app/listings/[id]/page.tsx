@@ -3,6 +3,7 @@
 import { useEffect, useState, use } from "react";
 import { formatCents } from "@/lib/format";
 import { useSession } from "@/components/SessionProvider";
+import StarRating from "@/components/StarRating";
 import type { Listing } from "@/lib/types";
 
 export default function ListingDetailPage({
@@ -112,7 +113,14 @@ export default function ListingDetailPage({
           </div>
           <div>
             <dt className="text-gray-400">Seller ID</dt>
-            <dd className="text-gray-900">#{listing.seller.handle}</dd>
+            <dd className="text-gray-900">
+              #{listing.seller.handle}
+              {listing.seller.rating && (
+                <span className="ml-2">
+                  <StarRating summary={listing.seller.rating} />
+                </span>
+              )}
+            </dd>
           </div>
         </dl>
 
@@ -120,6 +128,30 @@ export default function ListingDetailPage({
           <p className="mt-6 border-t pt-6 text-gray-700">
             {listing.description}
           </p>
+        )}
+
+        {listing.seller.recentReviews && listing.seller.recentReviews.length > 0 && (
+          <div className="mt-6 border-t pt-6">
+            <h2 className="mb-2 text-sm font-medium text-gray-700">
+              Reviews of this seller
+            </h2>
+            <div className="space-y-3">
+              {listing.seller.recentReviews.map((review) => (
+                <div key={review.id} className="text-sm">
+                  <div className="flex items-center justify-between">
+                    <StarRating summary={{ average: review.rating, count: 1 }} />
+                    <span className="text-xs text-gray-400">
+                      #{review.reviewer.handle} ·{" "}
+                      {new Date(review.createdAt).toLocaleDateString()}
+                    </span>
+                  </div>
+                  {review.comment && (
+                    <p className="mt-0.5 text-gray-600">{review.comment}</p>
+                  )}
+                </div>
+              ))}
+            </div>
+          </div>
         )}
 
         <div className="mt-6 flex items-center justify-between border-t pt-6">

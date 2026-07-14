@@ -6,6 +6,7 @@ import { bahtToCents } from "@/lib/format";
 import { toPublicHandle } from "@/lib/identity";
 import { checkListingFieldsForContactInfo } from "@/lib/moderation";
 import { imageUrlSchema } from "@/lib/imageUrl";
+import { getRatingSummaries } from "@/lib/ratings";
 
 const createBuyRequestSchema = z.object({
   eventName: z.string().min(1).max(150),
@@ -39,10 +40,15 @@ export async function GET(request: Request) {
     include: { buyer: { select: { id: true } } },
   });
 
+  const ratings = await getRatingSummaries(buyRequests.map((r) => r.buyer.id));
+
   return NextResponse.json({
     buyRequests: buyRequests.map((r) => ({
       ...r,
-      buyer: { handle: toPublicHandle(r.buyer.id) },
+      buyer: {
+        handle: toPublicHandle(r.buyer.id),
+        rating: ratings.get(r.buyer.id) ?? { average: null, count: 0 },
+      },
     })),
   });
 }

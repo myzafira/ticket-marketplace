@@ -7,6 +7,7 @@ import { toPublicHandle } from "@/lib/identity";
 import { checkListingFieldsForContactInfo } from "@/lib/moderation";
 import { notifyAdminOfMatch, notifyPartiesOfMatch } from "@/lib/notifications";
 import { imageUrlSchema } from "@/lib/imageUrl";
+import { getRatingSummaries } from "@/lib/ratings";
 
 const createListingSchema = z.object({
   title: z.string().min(1).max(150),
@@ -44,10 +45,15 @@ export async function GET(request: Request) {
     include: { seller: { select: { id: true } } },
   });
 
+  const ratings = await getRatingSummaries(listings.map((l) => l.seller.id));
+
   return NextResponse.json({
     listings: listings.map((l) => ({
       ...l,
-      seller: { handle: toPublicHandle(l.seller.id) },
+      seller: {
+        handle: toPublicHandle(l.seller.id),
+        rating: ratings.get(l.seller.id) ?? { average: null, count: 0 },
+      },
     })),
   });
 }

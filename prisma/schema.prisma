@@ -26,6 +26,9 @@ model User {
   listings    Listing[]
   orders      Order[]     @relation("BuyerOrders")
   buyRequests BuyRequest[]
+
+  reviewsGiven    Review[] @relation("ReviewsGiven")
+  reviewsReceived Review[] @relation("ReviewsReceived")
 }
 
 enum ListingStatus {
@@ -79,6 +82,27 @@ model Order {
 
   buyer   User   @relation("BuyerOrders", fields: [buyerId], references: [id])
   buyerId String
+
+  reviews Review[]
+}
+
+model Review {
+  id      String @id @default(cuid())
+  rating  Int
+  comment String?
+
+  order   Order  @relation(fields: [orderId], references: [id])
+  orderId String
+
+  reviewer   User   @relation("ReviewsGiven", fields: [reviewerId], references: [id])
+  reviewerId String
+
+  reviewee   User   @relation("ReviewsReceived", fields: [revieweeId], references: [id])
+  revieweeId String
+
+  createdAt DateTime @default(now())
+
+  @@unique([orderId, reviewerId])
 }
 
 enum BuyRequestStatus {

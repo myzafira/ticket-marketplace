@@ -12,15 +12,30 @@ export async function GET() {
   const listings = await db.listing.findMany({
     where: { sellerId: user.id },
     orderBy: { createdAt: "desc" },
-    include: { order: { include: { buyer: { select: { id: true } } } } },
+    include: {
+      order: {
+        include: {
+          buyer: { select: { id: true } },
+          reviews: { where: { reviewerId: user.id } },
+        },
+      },
+    },
   });
 
   return NextResponse.json({
-    listings: listings.map((l) => ({
-      ...l,
-      order: l.order
-        ? { ...l.order, buyer: { handle: toPublicHandle(l.order.buyer.id) } }
-        : null,
-    })),
+    listings: listings.map((l) => {
+      if (!l.order) return { ...l, order: null };
+      const { reviews, ...order } = l.order;
+      return {
+        ...l,
+        order: {
+          ...order,
+          buyer: { handle: toPublicHandle(l.order.buyer.id) },
+          myReview: reviews[0]
+            ? { rating: reviews[0].rating, comment: reviews[0].comment }
+            : null,
+        },
+      };
+    }),
   });
 }
