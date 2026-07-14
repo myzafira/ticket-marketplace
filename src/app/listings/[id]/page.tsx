@@ -4,7 +4,8 @@ import { useEffect, useState, use } from "react";
 import { formatCents } from "@/lib/format";
 import { useSession } from "@/components/SessionProvider";
 import StarRating from "@/components/StarRating";
-import type { Listing } from "@/lib/types";
+import MessageThread from "@/components/MessageThread";
+import type { Listing, Message } from "@/lib/types";
 
 export default function ListingDetailPage({
   params,
@@ -18,6 +19,7 @@ export default function ListingDetailPage({
   const [error, setError] = useState<string | null>(null);
   const [buying, setBuying] = useState(false);
   const [bought, setBought] = useState(false);
+  const [messages, setMessages] = useState<Message[]>([]);
 
   useEffect(() => {
     fetch(`/api/listings/${id}`)
@@ -29,6 +31,25 @@ export default function ListingDetailPage({
       .catch((err) => setError(err.message))
       .finally(() => setLoading(false));
   }, [id]);
+
+  useEffect(() => {
+    if (!user || !listing || user.id === listing.sellerId) return;
+    fetch(`/api/listings/${id}/messages`)
+      .then((res) => res.json())
+      .then((data) => setMessages(data.messages ?? []))
+      .catch(() => {});
+  }, [id, user, listing]);
+
+  async function handleSendMessage(body: string) {
+    const res = await fetch(`/api/listings/${id}/messages`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ body }),
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error ?? "Failed to send message");
+    setMessages((prev) => [...prev, data.message]);
+  }
 
   async function handleBuy() {
     setBuying(true);
@@ -193,6 +214,28 @@ export default function ListingDetailPage({
         </div>
 
         {error && <p className="mt-3 text-sm text-red-600">{error}</p>}
+
+        {user && !isOwner && (
+          <div className="mt-6 border-t pt-6">
+            <h2 className="mb-2 text-sm font-medium text-gray-700">
+              Ask the seller a question
+            </h2>
+            {needsVerification ? (
+              <p className="text-sm text-gray-500">
+                <a href="/verify" className="text-indigo-600 underline">
+                  Verify your email and phone
+                </a>{" "}
+                to message the seller.
+              </p>
+            ) : (
+              <MessageThread
+                messages={messages}
+                onSend={handleSendMessage}
+                placeholder="e.g. Which section are the seats in?"
+              />
+            )}
+          </div>
+        )}
       </div>
     </div>
   );

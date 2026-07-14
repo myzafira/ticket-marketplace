@@ -29,6 +29,9 @@ model User {
 
   reviewsGiven    Review[] @relation("ReviewsGiven")
   reviewsReceived Review[] @relation("ReviewsReceived")
+
+  conversationsAsBuyer Conversation[] @relation("ConversationsAsBuyer")
+  messagesSent         Message[]      @relation("MessagesSent")
 }
 
 enum ListingStatus {
@@ -61,6 +64,37 @@ model Listing {
   // here lets the request auto-close once this listing sells.
   fulfillsRequest   BuyRequest? @relation(fields: [fulfillsRequestId], references: [id])
   fulfillsRequestId String?
+
+  conversations Conversation[]
+}
+
+model Conversation {
+  id        String   @id @default(cuid())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  listing   Listing @relation(fields: [listingId], references: [id])
+  listingId String
+
+  buyer   User   @relation("ConversationsAsBuyer", fields: [buyerId], references: [id])
+  buyerId String
+
+  messages Message[]
+
+  @@unique([listingId, buyerId])
+}
+
+model Message {
+  id   String @id @default(cuid())
+  body String
+
+  conversation   Conversation @relation(fields: [conversationId], references: [id])
+  conversationId String
+
+  sender   User   @relation("MessagesSent", fields: [senderId], references: [id])
+  senderId String
+
+  createdAt DateTime @default(now())
 }
 
 enum OrderStatus {

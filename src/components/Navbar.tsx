@@ -48,6 +48,12 @@ export default function Navbar() {
               >
                 Dashboard
               </Link>
+              <Link
+                href="/messages"
+                className="text-gray-600 hover:text-gray-900"
+              >
+                Messages
+              </Link>
               {user.isAdmin && (
                 <Link
                   href="/admin"

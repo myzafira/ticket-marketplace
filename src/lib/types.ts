@@ -68,3 +68,20 @@ export type BuyRequest = {
   };
   fulfillingListings?: { id: string; priceCents: number }[];
 };
+
+export type Message = {
+  id: string;
+  body: string;
+  createdAt: string;
+  fromMe: boolean;
+};
+
+export type ConversationSummary = {
+  id: string;
+  role?: "buyer" | "seller";
+  listing: { id: string; eventName: string };
+  otherParty: { handle: string };
+  buyer?: { handle: string };
+  lastMessage: string | null;
+  updatedAt: string;
+};
