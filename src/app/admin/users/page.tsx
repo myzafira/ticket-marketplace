@@ -4,6 +4,7 @@ import { useState, type FormEvent } from "react";
 import Link from "next/link";
 import { useSession } from "@/components/SessionProvider";
 import { useTranslation } from "@/lib/i18n/LanguageContext";
+import { useToast } from "@/components/ToastContext";
 
 type AdminUser = {
   id: string;
@@ -20,6 +21,7 @@ type AdminUser = {
 export default function AdminUsersPage() {
   const { user, loading: loadingSession } = useSession();
   const { t, locale } = useTranslation();
+  const { showToast } = useToast();
   const dateLocale = locale === "th" ? "th-TH" : "en-US";
   const [query, setQuery] = useState("");
   const [users, setUsers] = useState<AdminUser[]>([]);
@@ -35,8 +37,12 @@ export default function AdminUsersPage() {
     try {
       const res = await fetch(`/api/admin/users?q=${encodeURIComponent(query.trim())}`);
       const data = await res.json();
-      setUsers(data.users ?? []);
-      setSearched(true);
+      if (res.ok) {
+        setUsers(data.users ?? []);
+        setSearched(true);
+      } else {
+        showToast(t("adminUsers.searchFailed"), "error");
+      }
     } finally {
       setLoading(false);
     }
@@ -55,6 +61,8 @@ export default function AdminUsersPage() {
             u.id === target.id ? { ...u, identityVerifiedAt: data.identityVerifiedAt } : u
           )
         );
+      } else {
+        showToast(t("adminUsers.actionFailed"), "error");
       }
     } finally {
       setPendingId(null);
@@ -76,6 +84,8 @@ export default function AdminUsersPage() {
               : u
           )
         );
+      } else {
+        showToast(t("adminUsers.actionFailed"), "error");
       }
     } finally {
       setPendingRestrictId(null);

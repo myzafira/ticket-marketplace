@@ -34,6 +34,9 @@ const en = {
     line: "LINE",
     instagram: "Instagram",
     tel: "Tel",
+    terms: "Terms of Service",
+    privacy: "Privacy Policy",
+    copyright: "© {year} TicketRight",
   },
   home: {
     title: "Buy and sell tickets",
@@ -220,6 +223,8 @@ const en = {
     haveAccount: "Already have an account?",
     login: "Log in",
     failed: "Failed to sign up",
+    agreementPrefix: "By signing up, you agree to our",
+    agreementAnd: "and",
   },
   verify: {
     title: "Verify your account",
@@ -391,6 +396,11 @@ const en = {
     saved: "Saved",
     failedToUpdate: "Failed to update favorites",
   },
+  notFound: {
+    title: "Page not found",
+    description: "The page you're looking for doesn't exist or may have moved.",
+    backHome: "Back to home",
+  },
   admin: {
     platformRevenue: "Platform revenue",
     settings: "Settings",
@@ -429,6 +439,7 @@ const en = {
     viewRequest: "View request",
     markCalled: "Mark called",
     called: "Called",
+    taskActionFailed: "That action didn't go through — please try again.",
     grossVolume: "Gross volume",
     completedOrders: "Completed orders",
     activeListings: "Active listings",
@@ -462,6 +473,8 @@ const en = {
     listingRestricted: "Listing restricted",
     restrictButton: "Restrict listings",
     unrestrictButton: "Remove restriction",
+    searchFailed: "Search failed — please try again.",
+    actionFailed: "That action didn't go through — please try again.",
   },
   adminSettings: {
     title: "Platform settings",
@@ -593,6 +606,9 @@ const th: typeof en = {
     line: "LINE",
     instagram: "Instagram",
     tel: "โทร",
+    terms: "ข้อกำหนดการให้บริการ",
+    privacy: "นโยบายความเป็นส่วนตัว",
+    copyright: "© {year} TicketRight",
   },
   home: {
     title: "ซื้อ-ขายตั๋วง่ายๆ",
@@ -778,6 +794,8 @@ const th: typeof en = {
     haveAccount: "มีบัญชีอยู่แล้ว?",
     login: "เข้าสู่ระบบ",
     failed: "สมัครสมาชิกไม่สำเร็จ",
+    agreementPrefix: "การสมัครสมาชิกถือว่าคุณยอมรับ",
+    agreementAnd: "และ",
   },
   verify: {
     title: "ยืนยันบัญชีของคุณ",
@@ -947,6 +965,11 @@ const th: typeof en = {
     saved: "บันทึกแล้ว",
     failedToUpdate: "อัปเดตรายการโปรดไม่สำเร็จ",
   },
+  notFound: {
+    title: "ไม่พบหน้านี้",
+    description: "หน้าที่คุณต้องการอาจไม่มีอยู่หรือถูกย้ายไปแล้ว",
+    backHome: "กลับไปหน้าแรก",
+  },
   admin: {
     platformRevenue: "รายได้แพลตฟอร์ม",
     settings: "ตั้งค่า",
@@ -985,6 +1008,7 @@ const th: typeof en = {
     viewRequest: "ดูคำขอ",
     markCalled: "ทำเครื่องหมายว่าโทรแล้ว",
     called: "โทรแล้ว",
+    taskActionFailed: "การดำเนินการไม่สำเร็จ กรุณาลองใหม่อีกครั้ง",
     grossVolume: "มูลค่าซื้อขายรวม",
     completedOrders: "คำสั่งซื้อที่สำเร็จ",
     activeListings: "รายการที่กำลังขาย",
@@ -1018,6 +1042,8 @@ const th: typeof en = {
     listingRestricted: "ถูกจำกัดสิทธิ์การขาย",
     restrictButton: "จำกัดสิทธิ์การขาย",
     unrestrictButton: "ยกเลิกการจำกัดสิทธิ์",
+    searchFailed: "ค้นหาไม่สำเร็จ กรุณาลองใหม่อีกครั้ง",
+    actionFailed: "การดำเนินการไม่สำเร็จ กรุณาลองใหม่อีกครั้ง",
   },
   adminSettings: {
     title: "ตั้งค่าแพลตฟอร์ม",
