@@ -109,6 +109,17 @@ export default function SignupPage() {
           {submitting ? t("signup.submitting") : t("signup.submit")}
         </button>
       </form>
+      <p className="mt-3 text-xs text-gray-400">
+        {t("signup.agreementPrefix")}{" "}
+        <Link href="/terms" className="underline hover:text-gray-600">
+          {t("footer.terms")}
+        </Link>{" "}
+        {t("signup.agreementAnd")}{" "}
+        <Link href="/privacy" className="underline hover:text-gray-600">
+          {t("footer.privacy")}
+        </Link>
+        .
+      </p>
       <p className="mt-4 text-sm text-gray-500">
         {t("signup.haveAccount")}{" "}
         <Link href="/login" className="text-indigo-600 underline">

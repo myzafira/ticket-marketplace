@@ -6,6 +6,7 @@ import { useSession } from "@/components/SessionProvider";
 import { formatCents } from "@/lib/format";
 import { useTranslation } from "@/lib/i18n/LanguageContext";
 import { translateApiError } from "@/lib/i18n/apiError";
+import { useToast } from "@/components/ToastContext";
 
 const REPORT_REASON_KEYS: Record<string, string> = {
   TICKET_NOT_RECEIVED: "reportForm.reasonTicketNotReceived",
@@ -78,6 +79,7 @@ type MatchNotification = {
 export default function AdminTasksPage() {
   const { user, loading: loadingSession } = useSession();
   const { t, locale } = useTranslation();
+  const { showToast } = useToast();
   const dateLocale = locale === "th" ? "th-TH" : "en-US";
   const [notifications, setNotifications] = useState<MatchNotification[]>([]);
   const [reports, setReports] = useState<OrderReport[]>([]);
@@ -129,6 +131,8 @@ export default function AdminTasksPage() {
             n.id === id ? { ...n, readAt: new Date().toISOString() } : n
           )
         );
+      } else {
+        showToast(t("admin.taskActionFailed"), "error");
       }
     } finally {
       setMarkingId(null);
@@ -145,6 +149,8 @@ export default function AdminTasksPage() {
         setReports((prev) =>
           prev.map((r) => (r.id === id ? { ...r, status: "RESOLVED" } : r))
         );
+      } else {
+        showToast(t("admin.taskActionFailed"), "error");
       }
     } finally {
       setResolvingId(null);
@@ -161,6 +167,8 @@ export default function AdminTasksPage() {
         setListingReports((prev) =>
           prev.map((r) => (r.id === id ? { ...r, status: "RESOLVED" } : r))
         );
+      } else {
+        showToast(t("admin.taskActionFailed"), "error");
       }
     } finally {
       setResolvingListingId(null);
@@ -182,6 +190,8 @@ export default function AdminTasksPage() {
               : s
           )
         );
+      } else {
+        showToast(t("admin.taskActionFailed"), "error");
       }
     } finally {
       setRestrictingId(null);

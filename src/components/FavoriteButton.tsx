@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useSession } from "@/components/SessionProvider";
 import { useTranslation } from "@/lib/i18n/LanguageContext";
+import { useToast } from "@/components/ToastContext";
 
 export default function FavoriteButton({
   listingId,
@@ -17,6 +18,7 @@ export default function FavoriteButton({
 }) {
   const { user } = useSession();
   const { t } = useTranslation();
+  const { showToast } = useToast();
   const [favorited, setFavorited] = useState(isFavorited);
   const [pending, setPending] = useState(false);
 
@@ -37,6 +39,7 @@ export default function FavoriteButton({
       onChange?.(next);
     } catch {
       setFavorited(!next);
+      showToast(t("favorite.failedToUpdate"), "error");
     } finally {
       setPending(false);
     }
