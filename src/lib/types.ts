@@ -47,6 +47,9 @@ export type Listing = {
     platformFeeCents: number;
     sellerPayoutCents: number;
     feeDiscountPercent: number;
+    pointsEarnedByBuyer: number;
+    pointsEarnedBySeller: number;
+    pointsRedeemedBySeller: number;
     ticketProofUrl: string | null;
     buyer: { handle: string };
     myReview?: { rating: number; comment: string | null } | null;
@@ -59,6 +62,10 @@ export type Order = {
   totalCents: number;
   platformFeeCents: number;
   sellerPayoutCents: number;
+  feeDiscountPercent: number;
+  pointsEarnedByBuyer: number;
+  pointsEarnedBySeller: number;
+  pointsRedeemedBySeller: number;
   ticketProofUrl: string | null;
   createdAt: string;
   status: "PENDING" | "COMPLETED" | "CANCELLED";

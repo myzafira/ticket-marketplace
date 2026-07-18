@@ -67,6 +67,15 @@ type ListingReport = {
   };
 };
 
+type FlaggedSeller = {
+  id: string;
+  name: string;
+  email: string;
+  phoneNumber: string;
+  listingReportCount: number;
+  listingRestrictedAt: string | null;
+};
+
 type MatchNotification = {
   id: string;
   message: string;
@@ -92,11 +101,13 @@ export default function AdminPage() {
   const [notifications, setNotifications] = useState<MatchNotification[]>([]);
   const [reports, setReports] = useState<OrderReport[]>([]);
   const [listingReports, setListingReports] = useState<ListingReport[]>([]);
+  const [flaggedSellers, setFlaggedSellers] = useState<FlaggedSeller[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [markingId, setMarkingId] = useState<string | null>(null);
   const [resolvingId, setResolvingId] = useState<string | null>(null);
   const [resolvingListingId, setResolvingListingId] = useState<string | null>(null);
+  const [restrictingId, setRestrictingId] = useState<string | null>(null);
 
   useEffect(() => {
     if (!user?.isAdmin) {
@@ -113,13 +124,23 @@ export default function AdminPage() {
       fetch("/api/admin/notifications").then((res) => res.json()),
       fetch("/api/admin/reports").then((res) => res.json()),
       fetch("/api/admin/listing-reports").then((res) => res.json()),
+      fetch("/api/admin/flagged-sellers").then((res) => res.json()),
     ])
-      .then(([statsData, notificationsData, reportsData, listingReportsData]) => {
-        setStats(statsData);
-        setNotifications(notificationsData.notifications ?? []);
-        setReports(reportsData.reports ?? []);
-        setListingReports(listingReportsData.reports ?? []);
-      })
+      .then(
+        ([
+          statsData,
+          notificationsData,
+          reportsData,
+          listingReportsData,
+          flaggedSellersData,
+        ]) => {
+          setStats(statsData);
+          setNotifications(notificationsData.notifications ?? []);
+          setReports(reportsData.reports ?? []);
+          setListingReports(listingReportsData.reports ?? []);
+          setFlaggedSellers(flaggedSellersData.sellers ?? []);
+        }
+      )
       .catch((err) => setError(err.message))
       .finally(() => setLoading(false));
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -172,6 +193,27 @@ export default function AdminPage() {
       }
     } finally {
       setResolvingListingId(null);
+    }
+  }
+
+  async function handleToggleRestrict(seller: FlaggedSeller) {
+    setRestrictingId(seller.id);
+    try {
+      const res = await fetch(`/api/admin/users/${seller.id}/restrict`, {
+        method: seller.listingRestrictedAt ? "DELETE" : "POST",
+      });
+      const data = await res.json();
+      if (res.ok) {
+        setFlaggedSellers((prev) =>
+          prev.map((s) =>
+            s.id === seller.id
+              ? { ...s, listingRestrictedAt: data.listingRestrictedAt }
+              : s
+          )
+        );
+      }
+    } finally {
+      setRestrictingId(null);
     }
   }
 
@@ -355,6 +397,43 @@ export default function AdminPage() {
                   </div>
                 </div>
               ))}
+          </div>
+        )}
+      </section>
+
+      <section className="mb-10">
+        <h2 className="mb-3 text-lg font-semibold text-gray-900">
+          {t("admin.flaggedSellersTitle")}
+        </h2>
+        {flaggedSellers.length === 0 ? (
+          <p className="text-gray-500">{t("admin.noFlaggedSellers")}</p>
+        ) : (
+          <div className="divide-y rounded-lg border bg-white">
+            {flaggedSellers.map((s) => (
+              <div key={s.id} className="flex items-start justify-between gap-4 p-4">
+                <div>
+                  <p className="font-medium text-gray-900">
+                    {s.name} — {s.email} — {s.phoneNumber}
+                  </p>
+                  <p className="mt-1 text-sm text-amber-700">
+                    {t("admin.listingReportCount", { count: s.listingReportCount })}
+                  </p>
+                </div>
+                <button
+                  onClick={() => handleToggleRestrict(s)}
+                  disabled={restrictingId === s.id}
+                  className={`whitespace-nowrap rounded px-3 py-1.5 text-sm disabled:opacity-50 ${
+                    s.listingRestrictedAt
+                      ? "bg-gray-100 text-gray-700 hover:bg-gray-200"
+                      : "bg-red-600 text-white hover:bg-red-700"
+                  }`}
+                >
+                  {s.listingRestrictedAt
+                    ? t("adminUsers.unrestrictButton")
+                    : t("adminUsers.restrictButton")}
+                </button>
+              </div>
+            ))}
           </div>
         )}
       </section>

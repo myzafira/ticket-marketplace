@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState, use } from "react";
+import Link from "next/link";
 import { formatCents } from "@/lib/format";
 import { useSession } from "@/components/SessionProvider";
 import StarRating from "@/components/StarRating";
@@ -204,6 +205,13 @@ export default function ListingDetailPage({
             </dd>
           </div>
         </dl>
+
+        <Link
+          href={`/events/${encodeURIComponent(listing.eventName)}`}
+          className="mt-3 inline-block text-xs text-indigo-600 underline"
+        >
+          {t("listingDetail.viewPriceHistory")}
+        </Link>
 
         {listing.description && (
           <p className="mt-6 border-t pt-6 text-gray-700">

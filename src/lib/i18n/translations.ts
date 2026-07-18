@@ -70,6 +70,7 @@ const en = {
     faceValueLabel: "Face value",
     markupAbove: "+{percent}% over face value",
     markupAtOrBelow: "At or below face value",
+    viewPriceHistory: "View price history for this event →",
     sellerIdLabel: "Seller ID",
     reviewsOfSeller: "Reviews of this seller",
     purchaseComplete: "Purchase complete — check your dashboard.",
@@ -87,6 +88,17 @@ const en = {
     failedToLoad: "Failed to load listing",
     failedToSend: "Failed to send message",
     failedToBuy: "Failed to buy ticket",
+  },
+  priceHistory: {
+    subtitle: "See what this event's tickets have actually sold for.",
+    soldTitle: "Sold tickets",
+    noSold: "No tickets have sold for this event yet.",
+    colVenue: "Venue",
+    colSoldOn: "Sold on",
+    colQuantity: "Qty",
+    colPrice: "Price",
+    activeTitle: "Currently for sale",
+    noActive: "No active listings for this event right now.",
   },
   wantedCard: {
     badge: "Wanted",
@@ -176,6 +188,8 @@ const en = {
     platformFeeHint: "Platform fee on sale: {tiers} — deducted from your payout.",
     trustDiscountHint:
       "💡 Verified sellers with {sales}+ completed sales get {percent}% off this fee.",
+    listingRestricted:
+      "Your listing privileges have been restricted due to repeated price complaints. Please contact support.",
     descriptionOptional: "Description (optional)",
     ticketPhotoOptional: "Ticket photo (optional)",
     ticketPhotoHint:
@@ -276,6 +290,8 @@ const en = {
     matchedFulfills: "Matched — fulfills a ticket request",
     soldForLine: "Sold for {total} · Platform fee {fee} · You received",
     trustDiscountApplied: "(trusted seller discount −{percent}%)",
+    pointsRedeemed: "(used {value} in points)",
+    pointsBalance: "💰 {points} points (≈ {value})",
     rateBuyer: "Rate buyer",
     rateSeller: "Rate seller",
     youRatedBuyer: "You rated the buyer:",
@@ -385,6 +401,9 @@ const en = {
     listingReportsTitle: "Listing price reports",
     noOpenListingReports: "No open price reports.",
     listingPriceLine: "Listed at {price} (face value {faceValue})",
+    flaggedSellersTitle: "Sellers flagged for repeat price complaints",
+    noFlaggedSellers: "No sellers currently flagged.",
+    listingReportCount: "Reported {count} times",
     reportedBy: "Reported by {name} ({email} — {phone})",
     buyerLine: "Buyer: {name} — {email} — {phone}",
     sellerLine: "Seller: {name} — {email} — {phone}",
@@ -424,6 +443,10 @@ const en = {
     verifiedSince: "Verified since {date}",
     notVerified: "Not verified",
     joined: "Joined {date}",
+    listingReportCount: "Reported {count} times",
+    listingRestricted: "Listing restricted",
+    restrictButton: "Restrict listings",
+    unrestrictButton: "Remove restriction",
   },
   adminSettings: {
     title: "Platform settings",
@@ -448,6 +471,14 @@ const en = {
     trustDiscountPercentLabel: "Fee discount (%)",
     trustDiscountHint:
       "Verified sellers with {sales}+ completed sales get their platform fee cut by {percent}% — a loyalty perk for proven sellers.",
+    pointsTitle: "Loyalty points",
+    pointsRateLabel: "Points earn rate (% of order total)",
+    pointsRateHint:
+      "Both buyer and seller earn {percent}% of the order total as points (1 point = 1 satang), redeemable against a seller's future platform fee.",
+    reportThresholdTitle: "Repeat price-complaint threshold",
+    reportThresholdLabel: "Reports before a seller is flagged",
+    reportThresholdHint:
+      "A seller whose listings collect {count}+ unfair-price reports (any status) is surfaced on the admin dashboard for review.",
     adminAccessTitle: "Admin access",
     adminEmailsLabel: "Admin emails (one per line)",
     adminEmailsHint:
@@ -504,6 +535,8 @@ const en = {
       "Price can't exceed {percent}% of face value (max {max}) to prevent scalping",
     cannotReportOwnListing: "You cannot report your own listing",
     alreadyOpenListingReport: "You already have an open report for this listing",
+    listingRestricted:
+      "Your listing privileges have been restricted due to repeated price complaints. Contact support.",
     addressTooShort: "Address looks too short — include street, city, and postal code",
     addressNeedsNumber: "Address should include a house/building or street number",
     addressNeedsPostalCode: "Address should include a 5-digit postal code",
@@ -581,6 +614,7 @@ const th: typeof en = {
     faceValueLabel: "ราคาหน้าตั๋ว",
     markupAbove: "+{percent}% จากราคาหน้าตั๋ว",
     markupAtOrBelow: "ไม่เกินราคาหน้าตั๋ว",
+    viewPriceHistory: "ดูประวัติราคาของงานนี้ →",
     sellerIdLabel: "รหัสผู้ขาย",
     reviewsOfSeller: "รีวิวผู้ขายรายนี้",
     purchaseComplete: "ซื้อสำเร็จแล้ว — ไปเช็กที่แดชบอร์ดของคุณได้เลย",
@@ -598,6 +632,17 @@ const th: typeof en = {
     failedToLoad: "โหลดรายการไม่สำเร็จ",
     failedToSend: "ส่งข้อความไม่สำเร็จ",
     failedToBuy: "ซื้อตั๋วไม่สำเร็จ",
+  },
+  priceHistory: {
+    subtitle: "ดูราคาจริงที่ตั๋วงานนี้เคยขายไป",
+    soldTitle: "ตั๋วที่ขายไปแล้ว",
+    noSold: "ยังไม่มีตั๋วงานนี้ที่ขายไปเลย",
+    colVenue: "สถานที่",
+    colSoldOn: "ขายเมื่อ",
+    colQuantity: "จำนวน",
+    colPrice: "ราคา",
+    activeTitle: "กำลังขายอยู่ตอนนี้",
+    noActive: "ตอนนี้ยังไม่มีรายการที่กำลังขายสำหรับงานนี้",
   },
   wantedCard: {
     badge: "ต้องการซื้อ",
@@ -686,6 +731,8 @@ const th: typeof en = {
     platformFeeHint: "ค่าธรรมเนียมแพลตฟอร์มเมื่อขายได้: {tiers} — หักจากยอดที่คุณจะได้รับ",
     trustDiscountHint:
       "💡 ผู้ขายที่ยืนยันตัวตนแล้วและขายสำเร็จตั้งแต่ {sales} ครั้งขึ้นไป จะได้ค่าธรรมเนียมลด {percent}%",
+    listingRestricted:
+      "สิทธิ์การลงขายของคุณถูกจำกัดเนื่องจากมีการแจ้งเรื่องราคาซ้ำหลายครั้ง กรุณาติดต่อทีมงาน",
     descriptionOptional: "รายละเอียดเพิ่มเติม (ไม่บังคับ)",
     ticketPhotoOptional: "รูปตั๋ว (ไม่บังคับ)",
     ticketPhotoHint:
@@ -784,6 +831,8 @@ const th: typeof en = {
     matchedFulfills: "ตรงกับคำขอซื้อ",
     soldForLine: "ขายได้ {total} · ค่าธรรมเนียมแพลตฟอร์ม {fee} · คุณได้รับ",
     trustDiscountApplied: "(ส่วนลดผู้ขายน่าเชื่อถือ −{percent}%)",
+    pointsRedeemed: "(ใช้แต้มหักไป {value})",
+    pointsBalance: "💰 {points} แต้ม (≈ {value})",
     rateBuyer: "ให้คะแนนผู้ซื้อ",
     rateSeller: "ให้คะแนนผู้ขาย",
     youRatedBuyer: "คุณให้คะแนนผู้ซื้อแล้ว:",
@@ -893,6 +942,9 @@ const th: typeof en = {
     listingReportsTitle: "เรื่องแจ้งราคาไม่เป็นธรรม",
     noOpenListingReports: "ไม่มีเรื่องแจ้งราคาที่ค้างอยู่",
     listingPriceLine: "ลงขายที่ {price} (ราคาหน้าตั๋ว {faceValue})",
+    flaggedSellersTitle: "ผู้ขายที่ถูกร้องเรียนราคาซ้ำหลายครั้ง",
+    noFlaggedSellers: "ไม่มีผู้ขายที่ถูก flag ในตอนนี้",
+    listingReportCount: "ถูกแจ้ง {count} ครั้ง",
     reportedBy: "แจ้งโดย {name} ({email} — {phone})",
     buyerLine: "ผู้ซื้อ: {name} — {email} — {phone}",
     sellerLine: "ผู้ขาย: {name} — {email} — {phone}",
@@ -932,6 +984,10 @@ const th: typeof en = {
     verifiedSince: "ยืนยันตัวตนเมื่อ {date}",
     notVerified: "ยังไม่ได้ยืนยันตัวตน",
     joined: "สมัครเมื่อ {date}",
+    listingReportCount: "ถูกแจ้ง {count} ครั้ง",
+    listingRestricted: "ถูกจำกัดสิทธิ์การขาย",
+    restrictButton: "จำกัดสิทธิ์การขาย",
+    unrestrictButton: "ยกเลิกการจำกัดสิทธิ์",
   },
   adminSettings: {
     title: "ตั้งค่าแพลตฟอร์ม",
@@ -956,6 +1012,14 @@ const th: typeof en = {
     trustDiscountPercentLabel: "ส่วนลดค่าธรรมเนียม (%)",
     trustDiscountHint:
       "ผู้ขายที่ยืนยันตัวตนแล้วและขายสำเร็จตั้งแต่ {sales} ครั้งขึ้นไป จะได้ค่าธรรมเนียมลด {percent}% — เป็นสิทธิพิเศษสำหรับผู้ขายที่พิสูจน์ตัวเองแล้ว",
+    pointsTitle: "แต้มสะสม",
+    pointsRateLabel: "อัตราการได้แต้ม (% ของยอดคำสั่งซื้อ)",
+    pointsRateHint:
+      "ทั้งผู้ซื้อและผู้ขายจะได้แต้มสะสม {percent}% ของยอดคำสั่งซื้อ (1 แต้ม = 1 สตางค์) ใช้หักค่าธรรมเนียมของผู้ขายในการขายครั้งถัดไปได้",
+    reportThresholdTitle: "เกณฑ์แจ้งเตือนผู้ขายที่ถูกร้องเรียนราคาซ้ำ",
+    reportThresholdLabel: "จำนวนครั้งที่ถูกแจ้งก่อนถูก flag",
+    reportThresholdHint:
+      "ผู้ขายที่มีรายการถูกแจ้งราคาไม่เป็นธรรมตั้งแต่ {count} ครั้งขึ้นไป (ทุกสถานะ) จะถูกแสดงในหน้าแอดมินให้ตรวจสอบ",
     adminAccessTitle: "สิทธิ์การเข้าถึงแอดมิน",
     adminEmailsLabel: "อีเมลแอดมิน (บรรทัดละ 1 อีเมล)",
     adminEmailsHint:
@@ -1012,6 +1076,8 @@ const th: typeof en = {
       "ราคาขายต้องไม่เกิน {percent}% ของราคาหน้าตั๋ว (สูงสุด {max}) เพื่อป้องกันการเก็งกำไร",
     cannotReportOwnListing: "คุณแจ้งรายการของตัวเองไม่ได้",
     alreadyOpenListingReport: "คุณมีเรื่องแจ้งที่ยังค้างอยู่สำหรับรายการนี้แล้ว",
+    listingRestricted:
+      "สิทธิ์การลงขายของคุณถูกจำกัดเนื่องจากมีการแจ้งเรื่องราคาซ้ำหลายครั้ง กรุณาติดต่อทีมงาน",
     addressTooShort: "ที่อยู่สั้นเกินไป — กรุณาระบุถนน เขต/อำเภอ และรหัสไปรษณีย์",
     addressNeedsNumber: "ที่อยู่ควรมีเลขที่บ้าน/อาคาร หรือเลขที่ถนน",
     addressNeedsPostalCode: "ที่อยู่ควรมีรหัสไปรษณีย์ 5 หลัก",

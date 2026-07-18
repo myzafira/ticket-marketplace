@@ -26,6 +26,15 @@ model User {
   // there's no automated ID/phone verification provider wired up.
   identityVerifiedAt DateTime?
 
+  // Loyalty points earned from completed orders (both as buyer and seller),
+  // redeemable 1 point = 1 satang off a future platform fee. Balance is
+  // denormalized here for fast reads; PointsTransaction is the audit log.
+  pointsBalance Int @default(0)
+
+  // Set by an admin after repeated "unfair price" reports on this seller's
+  // listings — blocks new listings until cleared.
+  listingRestrictedAt DateTime?
+
   listings    Listing[]
   orders      Order[]     @relation("BuyerOrders")
   buyRequests BuyRequest[]
@@ -36,9 +45,32 @@ model User {
   conversationsAsBuyer Conversation[] @relation("ConversationsAsBuyer")
   messagesSent         Message[]      @relation("MessagesSent")
 
-  orderReports   OrderReport[]
-  favorites      Favorite[]
-  listingReports ListingReport[]
+  orderReports      OrderReport[]
+  favorites         Favorite[]
+  listingReports    ListingReport[]
+  pointsTransactions PointsTransaction[]
+}
+
+enum PointsTransactionReason {
+  EARNED_PURCHASE
+  EARNED_SALE
+  REDEEMED_FEE_DISCOUNT
+  ADMIN_ADJUSTMENT
+}
+
+// Audit log backing User.pointsBalance — positive amount = earned,
+// negative = spent/removed.
+model PointsTransaction {
+  id     String                   @id @default(cuid())
+  amount Int
+  reason PointsTransactionReason
+
+  user   User   @relation(fields: [userId], references: [id])
+  userId String
+
+  orderId String?
+
+  createdAt DateTime @default(now())
 }
 
 enum ListingStatus {
@@ -166,6 +198,11 @@ model Order {
   // seller at the time of this sale — recorded here (rather than derived
   // later) so the receipt stays accurate even if the seller's status changes.
   feeDiscountPercent Int         @default(0)
+  // Loyalty points earned by each party on this order, and points the
+  // seller spent (1 point = 1 satang) reducing their fee on this sale.
+  pointsEarnedByBuyer   Int      @default(0)
+  pointsEarnedBySeller  Int      @default(0)
+  pointsRedeemedBySeller Int     @default(0)
   createdAt          DateTime    @default(now())
 
   listing   Listing @relation(fields: [listingId], references: [id])
@@ -292,6 +329,14 @@ model PlatformSettings {
   // sales get their platform fee cut by this percentage, as a loyalty perk.
   trustedSellerMinSales           Int @default(5)
   trustedSellerFeeDiscountPercent Int @default(20)
+
+  // % of an order's total that both buyer and seller earn as points
+  // (1 point = 1 satang), redeemable against a seller's future platform fee.
+  pointsEarnRatePercent Int @default(1)
+
+  // A seller whose listings have collected this many "unfair price" reports
+  // (across any status) gets surfaced to admins as a repeat offender.
+  sellerReportWarningThreshold Int @default(3)
 
   // Comma-separated list of account emails permitted to view /admin.
   adminEmails String @default("")

@@ -11,6 +11,8 @@ export type SessionUser = {
   address: string;
   emailVerified: boolean;
   isAdmin: boolean;
+  listingRestrictedAt: string | null;
+  pointsBalance: number;
 } | null;
 
 type SessionContextValue = {

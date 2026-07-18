@@ -21,6 +21,26 @@ export async function getSalesCounts(
   return map;
 }
 
+// Total "unfair price" reports filed against any of the seller's listings
+// (any status) — used to flag repeat offenders for admin review.
+export async function getListingReportCounts(
+  sellerIds: string[]
+): Promise<Map<string, number>> {
+  const uniqueIds = [...new Set(sellerIds)];
+  const map = new Map<string, number>();
+  for (const id of uniqueIds) map.set(id, 0);
+  if (uniqueIds.length === 0) return map;
+
+  const reports = await db.listingReport.findMany({
+    where: { listing: { sellerId: { in: uniqueIds } } },
+    select: { listing: { select: { sellerId: true } } },
+  });
+  for (const report of reports) {
+    map.set(report.listing.sellerId, (map.get(report.listing.sellerId) ?? 0) + 1);
+  }
+  return map;
+}
+
 export async function getPurchaseCounts(
   buyerIds: string[]
 ): Promise<Map<string, number>> {
