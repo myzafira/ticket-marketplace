@@ -1,10 +1,11 @@
 "use client";
 
 import { useEffect, useState, use } from "react";
-import Link from "next/link";
 import { formatCents } from "@/lib/format";
 import { useSession } from "@/components/SessionProvider";
 import StarRating from "@/components/StarRating";
+import { useTranslation } from "@/lib/i18n/LanguageContext";
+import { translateApiError } from "@/lib/i18n/apiError";
 import type { BuyRequest } from "@/lib/types";
 
 export default function BuyRequestDetailPage({
@@ -14,6 +15,7 @@ export default function BuyRequestDetailPage({
 }) {
   const { id } = use(params);
   const { user } = useSession();
+  const { t, locale } = useTranslation();
   const [request, setRequest] = useState<BuyRequest | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -23,11 +25,15 @@ export default function BuyRequestDetailPage({
     fetch(`/api/buy-requests/${id}`)
       .then(async (res) => {
         const data = await res.json();
-        if (!res.ok) throw new Error(data.error ?? "Failed to load request");
+        if (!res.ok)
+          throw new Error(
+            translateApiError(t, data.error, t("wantedDetail.failedToLoad"))
+          );
         setRequest(data.buyRequest);
       })
       .catch((err) => setError(err.message))
       .finally(() => setLoading(false));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [id]);
 
   async function handleCancel() {
@@ -57,13 +63,17 @@ export default function BuyRequestDetailPage({
   }
 
   if (loading) {
-    return <p className="mx-auto max-w-2xl px-4 py-8 text-gray-500">Loading…</p>;
+    return (
+      <p className="mx-auto max-w-2xl px-4 py-8 text-gray-500">
+        {t("common.loading")}
+      </p>
+    );
   }
 
   if (!request) {
     return (
       <p className="mx-auto max-w-2xl px-4 py-8 text-gray-500">
-        {error ?? "Request not found."}
+        {error ?? t("wantedDetail.notFound")}
       </p>
     );
   }
@@ -71,6 +81,7 @@ export default function BuyRequestDetailPage({
   const eventDate = new Date(request.eventDate);
   const isOwner = user && user.id === request.buyerId;
   const isOpen = request.status === "OPEN";
+  const dateLocale = locale === "th" ? "th-TH" : "en-US";
 
   const sellPrefillParams = new URLSearchParams({
     eventName: request.eventName,
@@ -84,13 +95,13 @@ export default function BuyRequestDetailPage({
     <div className="mx-auto max-w-2xl px-4 py-8">
       <div className="rounded-lg border bg-white p-6 shadow-sm">
         <span className="mb-2 inline-block rounded bg-amber-100 px-2 py-0.5 text-xs font-medium text-amber-700">
-          Wanted
+          {t("wantedDetail.badge")}
         </span>
         {request.imageUrl && (
           // eslint-disable-next-line @next/next/no-img-element
           <img
             src={request.imageUrl}
-            alt="Reference"
+            alt={t("wantedDetail.referenceAlt")}
             className="mb-4 max-h-80 w-full rounded-lg border object-contain"
           />
         )}
@@ -99,7 +110,7 @@ export default function BuyRequestDetailPage({
         </h1>
         {request.venue && <p className="mt-1 text-gray-500">{request.venue}</p>}
         <p className="mt-1 text-gray-500">
-          {eventDate.toLocaleDateString(undefined, {
+          {eventDate.toLocaleDateString(dateLocale, {
             weekday: "long",
             year: "numeric",
             month: "long",
@@ -109,13 +120,13 @@ export default function BuyRequestDetailPage({
 
         <dl className="mt-6 grid grid-cols-2 gap-4 border-t pt-6 text-sm">
           <div>
-            <dt className="text-gray-400">Quantity</dt>
+            <dt className="text-gray-400">{t("wantedDetail.quantityLabel")}</dt>
             <dd className="text-gray-900">{request.quantity}</dd>
           </div>
           <div>
-            <dt className="text-gray-400">Requested by</dt>
+            <dt className="text-gray-400">{t("wantedDetail.requestedByLabel")}</dt>
             <dd className="text-gray-900">
-              Buyer #{request.buyer.handle}
+              {t("wantedDetail.buyerHandle", { handle: request.buyer.handle })}
               {request.buyer.rating && (
                 <span className="ml-2">
                   <StarRating summary={request.buyer.rating} />
@@ -132,7 +143,7 @@ export default function BuyRequestDetailPage({
         {request.buyer.recentReviews && request.buyer.recentReviews.length > 0 && (
           <div className="mt-6 border-t pt-6">
             <h2 className="mb-2 text-sm font-medium text-gray-700">
-              Reviews of this buyer
+              {t("wantedDetail.reviewsOfBuyer")}
             </h2>
             <div className="space-y-3">
               {request.buyer.recentReviews.map((review) => (
@@ -141,7 +152,7 @@ export default function BuyRequestDetailPage({
                     <StarRating summary={{ average: review.rating, count: 1 }} />
                     <span className="text-xs text-gray-400">
                       #{review.reviewer.handle} ·{" "}
-                      {new Date(review.createdAt).toLocaleDateString()}
+                      {new Date(review.createdAt).toLocaleDateString(dateLocale)}
                     </span>
                   </div>
                   {review.comment && (
@@ -155,12 +166,14 @@ export default function BuyRequestDetailPage({
 
         <div className="mt-6 flex items-center justify-between border-t pt-6">
           <p className="text-2xl font-bold text-indigo-600">
-            up to {formatCents(request.maxPriceCents)}
+            {t("wantedDetail.upTo", { price: formatCents(request.maxPriceCents) })}
           </p>
 
           {!isOpen ? (
             <p className="font-medium text-gray-400">
-              {request.status === "FULFILLED" ? "Fulfilled" : "Cancelled"}
+              {request.status === "FULFILLED"
+                ? t("wantedDetail.fulfilled")
+                : t("wantedDetail.cancelled")}
             </p>
           ) : isOwner ? (
             <div className="flex gap-2">
@@ -169,14 +182,14 @@ export default function BuyRequestDetailPage({
                 disabled={updating}
                 className="rounded-lg bg-green-600 px-4 py-2.5 text-sm font-medium text-white hover:bg-green-700 disabled:opacity-50"
               >
-                Mark fulfilled
+                {t("wantedDetail.markFulfilled")}
               </button>
               <button
                 onClick={handleCancel}
                 disabled={updating}
                 className="rounded-lg bg-gray-100 px-4 py-2.5 text-sm font-medium text-gray-700 hover:bg-gray-200 disabled:opacity-50"
               >
-                Cancel
+                {t("wantedDetail.cancel")}
               </button>
             </div>
           ) : !user ? (
@@ -184,21 +197,21 @@ export default function BuyRequestDetailPage({
               href="/login"
               className="rounded-lg bg-indigo-600 px-5 py-2.5 font-medium text-white hover:bg-indigo-700"
             >
-              Log in to respond
+              {t("wantedDetail.loginToRespond")}
             </a>
           ) : !user.emailVerified ? (
             <a
               href="/verify"
               className="rounded-lg bg-indigo-600 px-5 py-2.5 font-medium text-white hover:bg-indigo-700"
             >
-              Verify account to respond
+              {t("wantedDetail.verifyToRespond")}
             </a>
           ) : (
             <a
               href={`/sell?${sellPrefillParams.toString()}`}
               className="rounded-lg bg-indigo-600 px-5 py-2.5 font-medium text-white hover:bg-indigo-700"
             >
-              I have this ticket
+              {t("wantedDetail.haveThisTicket")}
             </a>
           )}
         </div>

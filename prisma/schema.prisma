@@ -31,6 +31,9 @@ model User {
 
   conversationsAsBuyer Conversation[] @relation("ConversationsAsBuyer")
   messagesSent         Message[]      @relation("MessagesSent")
+
+  orderReports OrderReport[]
+  favorites    Favorite[]
 }
 
 enum ListingStatus {
@@ -65,6 +68,20 @@ model Listing {
   fulfillsRequestId String?
 
   conversations Conversation[]
+  favoritedBy   Favorite[]
+}
+
+model Favorite {
+  id        String   @id @default(cuid())
+  createdAt DateTime @default(now())
+
+  user   User   @relation(fields: [userId], references: [id])
+  userId String
+
+  listing   Listing @relation(fields: [listingId], references: [id])
+  listingId String
+
+  @@unique([userId, listingId])
 }
 
 model Conversation {
@@ -108,6 +125,9 @@ model Order {
   totalCents         Int
   platformFeeCents   Int         @default(0)
   sellerPayoutCents  Int         @default(0)
+  // Photo of the physical/digital ticket (or its QR/barcode) the seller
+  // uploads after the sale, so the buyer has proof beyond the chat thread.
+  ticketProofUrl     String?
   createdAt          DateTime    @default(now())
 
   listing   Listing @relation(fields: [listingId], references: [id])
@@ -117,6 +137,7 @@ model Order {
   buyerId String
 
   reviews Review[]
+  reports OrderReport[]
 }
 
 model Review {
@@ -136,6 +157,36 @@ model Review {
   createdAt DateTime @default(now())
 
   @@unique([orderId, reviewerId])
+}
+
+enum OrderReportReason {
+  TICKET_NOT_RECEIVED
+  WRONG_OR_INVALID_TICKET
+  PAYMENT_ISSUE
+  OTHER
+}
+
+enum OrderReportStatus {
+  OPEN
+  RESOLVED
+}
+
+model OrderReport {
+  id      String            @id @default(cuid())
+  reason  OrderReportReason
+  message String
+  status  OrderReportStatus @default(OPEN)
+
+  order   Order  @relation(fields: [orderId], references: [id])
+  orderId String
+
+  reporter   User   @relation(fields: [reporterId], references: [id])
+  reporterId String
+
+  createdAt  DateTime  @default(now())
+  resolvedAt DateTime?
+
+  @@unique([orderId, reporterId, status])
 }
 
 enum BuyRequestStatus {

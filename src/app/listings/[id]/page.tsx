@@ -5,6 +5,9 @@ import { formatCents } from "@/lib/format";
 import { useSession } from "@/components/SessionProvider";
 import StarRating from "@/components/StarRating";
 import MessageThread from "@/components/MessageThread";
+import FavoriteButton from "@/components/FavoriteButton";
+import { useTranslation } from "@/lib/i18n/LanguageContext";
+import { translateApiError } from "@/lib/i18n/apiError";
 import type { Listing, Message } from "@/lib/types";
 
 export default function ListingDetailPage({
@@ -14,6 +17,7 @@ export default function ListingDetailPage({
 }) {
   const { id } = use(params);
   const { user } = useSession();
+  const { t, locale } = useTranslation();
   const [listing, setListing] = useState<Listing | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -25,11 +29,15 @@ export default function ListingDetailPage({
     fetch(`/api/listings/${id}`)
       .then(async (res) => {
         const data = await res.json();
-        if (!res.ok) throw new Error(data.error ?? "Failed to load listing");
+        if (!res.ok)
+          throw new Error(
+            translateApiError(t, data.error, t("listingDetail.failedToLoad"))
+          );
         setListing(data.listing);
       })
       .catch((err) => setError(err.message))
       .finally(() => setLoading(false));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [id]);
 
   useEffect(() => {
@@ -47,7 +55,10 @@ export default function ListingDetailPage({
       body: JSON.stringify({ body }),
     });
     const data = await res.json();
-    if (!res.ok) throw new Error(data.error ?? "Failed to send message");
+    if (!res.ok)
+      throw new Error(
+        translateApiError(t, data.error, t("listingDetail.failedToSend"))
+      );
     setMessages((prev) => [...prev, data.message]);
   }
 
@@ -57,24 +68,31 @@ export default function ListingDetailPage({
     try {
       const res = await fetch(`/api/listings/${id}/buy`, { method: "POST" });
       const data = await res.json();
-      if (!res.ok) throw new Error(data.error ?? "Failed to buy ticket");
+      if (!res.ok)
+        throw new Error(
+          translateApiError(t, data.error, t("listingDetail.failedToBuy"))
+        );
       setBought(true);
       setListing((prev) => (prev ? { ...prev, status: "SOLD" } : prev));
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Something went wrong");
+      setError(err instanceof Error ? err.message : t("common.somethingWentWrong"));
     } finally {
       setBuying(false);
     }
   }
 
   if (loading) {
-    return <p className="mx-auto max-w-2xl px-4 py-8 text-gray-500">Loading…</p>;
+    return (
+      <p className="mx-auto max-w-2xl px-4 py-8 text-gray-500">
+        {t("common.loading")}
+      </p>
+    );
   }
 
   if (!listing) {
     return (
       <p className="mx-auto max-w-2xl px-4 py-8 text-gray-500">
-        {error ?? "Listing not found."}
+        {error ?? t("listingDetail.notFound")}
       </p>
     );
   }
@@ -83,6 +101,7 @@ export default function ListingDetailPage({
   const isOwner = user && user.id === listing.sellerId;
   const isSold = listing.status !== "ACTIVE";
   const needsVerification = user && !user.emailVerified;
+  const dateLocale = locale === "th" ? "th-TH" : "en-US";
 
   return (
     <div className="mx-auto max-w-2xl px-4 py-8">
@@ -92,23 +111,33 @@ export default function ListingDetailPage({
             href={`/wanted/${listing.fulfillsRequestId}`}
             className="mb-2 inline-block rounded bg-amber-100 px-2 py-0.5 text-xs font-medium text-amber-700 hover:bg-amber-200"
           >
-            Fulfills a ticket request
+            {t("listingDetail.fulfillsRequest")}
           </a>
         )}
         {listing.imageUrl && (
           // eslint-disable-next-line @next/next/no-img-element
           <img
             src={listing.imageUrl}
-            alt="Ticket"
+            alt={t("listingDetail.ticketAlt")}
             className="mb-4 max-h-80 w-full rounded-lg border object-contain"
           />
         )}
-        <h1 className="text-2xl font-bold text-gray-900">
-          {listing.eventName}
-        </h1>
+        <div className="flex items-start justify-between gap-3">
+          <h1 className="text-2xl font-bold text-gray-900">
+            {listing.eventName}
+          </h1>
+          <FavoriteButton
+            listingId={listing.id}
+            isFavorited={Boolean(listing.isFavorited)}
+            size="md"
+            onChange={(next) =>
+              setListing((prev) => (prev ? { ...prev, isFavorited: next } : prev))
+            }
+          />
+        </div>
         <p className="mt-1 text-gray-500">{listing.venue}</p>
         <p className="mt-1 text-gray-500">
-          {eventDate.toLocaleDateString(undefined, {
+          {eventDate.toLocaleDateString(dateLocale, {
             weekday: "long",
             year: "numeric",
             month: "long",
@@ -118,21 +147,21 @@ export default function ListingDetailPage({
 
         <dl className="mt-6 grid grid-cols-2 gap-4 border-t pt-6 text-sm">
           <div>
-            <dt className="text-gray-400">Listing</dt>
+            <dt className="text-gray-400">{t("listingDetail.listingLabel")}</dt>
             <dd className="text-gray-900">{listing.title}</dd>
           </div>
           {listing.section && (
             <div>
-              <dt className="text-gray-400">Section</dt>
+              <dt className="text-gray-400">{t("listingDetail.sectionLabel")}</dt>
               <dd className="text-gray-900">{listing.section}</dd>
             </div>
           )}
           <div>
-            <dt className="text-gray-400">Quantity</dt>
+            <dt className="text-gray-400">{t("listingDetail.quantityLabel")}</dt>
             <dd className="text-gray-900">{listing.quantity}</dd>
           </div>
           <div>
-            <dt className="text-gray-400">Seller ID</dt>
+            <dt className="text-gray-400">{t("listingDetail.sellerIdLabel")}</dt>
             <dd className="text-gray-900">
               #{listing.seller.handle}
               {listing.seller.rating && (
@@ -153,7 +182,7 @@ export default function ListingDetailPage({
         {listing.seller.recentReviews && listing.seller.recentReviews.length > 0 && (
           <div className="mt-6 border-t pt-6">
             <h2 className="mb-2 text-sm font-medium text-gray-700">
-              Reviews of this seller
+              {t("listingDetail.reviewsOfSeller")}
             </h2>
             <div className="space-y-3">
               {listing.seller.recentReviews.map((review) => (
@@ -162,7 +191,7 @@ export default function ListingDetailPage({
                     <StarRating summary={{ average: review.rating, count: 1 }} />
                     <span className="text-xs text-gray-400">
                       #{review.reviewer.handle} ·{" "}
-                      {new Date(review.createdAt).toLocaleDateString()}
+                      {new Date(review.createdAt).toLocaleDateString(dateLocale)}
                     </span>
                   </div>
                   {review.comment && (
@@ -181,25 +210,27 @@ export default function ListingDetailPage({
 
           {bought ? (
             <p className="font-medium text-green-600">
-              Purchase complete — check your dashboard.
+              {t("listingDetail.purchaseComplete")}
             </p>
           ) : isSold ? (
-            <p className="font-medium text-gray-400">No longer available</p>
+            <p className="font-medium text-gray-400">
+              {t("listingDetail.noLongerAvailable")}
+            </p>
           ) : isOwner ? (
-            <p className="text-sm text-gray-400">This is your listing</p>
+            <p className="text-sm text-gray-400">{t("listingDetail.yourListing")}</p>
           ) : !user ? (
             <a
               href="/login"
               className="rounded-lg bg-indigo-600 px-5 py-2.5 font-medium text-white hover:bg-indigo-700"
             >
-              Log in to buy
+              {t("listingDetail.loginToBuy")}
             </a>
           ) : needsVerification ? (
             <a
               href="/verify"
               className="rounded-lg bg-indigo-600 px-5 py-2.5 font-medium text-white hover:bg-indigo-700"
             >
-              Verify account to buy
+              {t("listingDetail.verifyToBuy")}
             </a>
           ) : (
             <button
@@ -207,7 +238,7 @@ export default function ListingDetailPage({
               disabled={buying}
               className="rounded-lg bg-indigo-600 px-5 py-2.5 font-medium text-white hover:bg-indigo-700 disabled:opacity-50"
             >
-              {buying ? "Processing…" : "Buy ticket"}
+              {buying ? t("listingDetail.processing") : t("listingDetail.buyTicket")}
             </button>
           )}
         </div>
@@ -217,20 +248,20 @@ export default function ListingDetailPage({
         {user && !isOwner && (
           <div className="mt-6 border-t pt-6">
             <h2 className="mb-2 text-sm font-medium text-gray-700">
-              Ask the seller a question
+              {t("listingDetail.askSeller")}
             </h2>
             {needsVerification ? (
               <p className="text-sm text-gray-500">
                 <a href="/verify" className="text-indigo-600 underline">
-                  Verify your email
+                  {t("listingDetail.verifyToMessagePrefix")}
                 </a>{" "}
-                to message the seller.
+                {t("listingDetail.verifyToMessageSuffix")}
               </p>
             ) : (
               <MessageThread
                 messages={messages}
                 onSend={handleSendMessage}
-                placeholder="e.g. Which section are the seats in?"
+                placeholder={t("listingDetail.messagePlaceholder")}
               />
             )}
           </div>

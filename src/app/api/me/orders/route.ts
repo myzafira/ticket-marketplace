@@ -15,11 +15,12 @@ export async function GET() {
     include: {
       listing: { include: { seller: { select: { id: true, nickname: true } } } },
       reviews: { where: { reviewerId: user.id } },
+      reports: { where: { reporterId: user.id }, orderBy: { createdAt: "desc" } },
     },
   });
 
   return NextResponse.json({
-    orders: orders.map(({ reviews, ...o }) => ({
+    orders: orders.map(({ reviews, reports, ...o }) => ({
       ...o,
       listing: {
         ...o.listing,
@@ -27,6 +28,9 @@ export async function GET() {
       },
       myReview: reviews[0]
         ? { rating: reviews[0].rating, comment: reviews[0].comment }
+        : null,
+      myReport: reports[0]
+        ? { id: reports[0].id, status: reports[0].status }
         : null,
     })),
   });

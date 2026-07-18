@@ -3,6 +3,8 @@
 import { useEffect, useState, type FormEvent } from "react";
 import Link from "next/link";
 import { useSession } from "@/components/SessionProvider";
+import { useTranslation } from "@/lib/i18n/LanguageContext";
+import { translateApiError } from "@/lib/i18n/apiError";
 
 type Settings = {
   tier1MaxBaht: number;
@@ -18,6 +20,7 @@ type Settings = {
 
 export default function AdminSettingsPage() {
   const { user, loading: loadingSession } = useSession();
+  const { t } = useTranslation();
   const [settings, setSettings] = useState<Settings | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -32,7 +35,8 @@ export default function AdminSettingsPage() {
     fetch("/api/admin/settings")
       .then(async (res) => {
         const data = await res.json();
-        if (!res.ok) throw new Error(data.error ?? "Failed to load settings");
+        if (!res.ok)
+          throw new Error(translateApiError(t, data.error, t("adminSettings.failedToLoad")));
         setSettings({
           ...data.settings,
           adminEmails: data.settings.adminEmails
@@ -43,6 +47,7 @@ export default function AdminSettingsPage() {
       })
       .catch((err) => setError(err.message))
       .finally(() => setLoading(false));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user]);
 
   function update<K extends keyof Settings>(key: K, value: Settings[K]) {
@@ -72,25 +77,28 @@ export default function AdminSettingsPage() {
         }),
       });
       const data = await res.json();
-      if (!res.ok) throw new Error(data.error ?? "Failed to save settings");
+      if (!res.ok)
+        throw new Error(translateApiError(t, data.error, t("adminSettings.failedToSave")));
       setSuccess(true);
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Something went wrong");
+      setError(err instanceof Error ? err.message : t("common.somethingWentWrong"));
     } finally {
       setSaving(false);
     }
   }
 
   if (loadingSession || loading) {
-    return <p className="mx-auto max-w-2xl px-4 py-8 text-gray-500">Loading…</p>;
+    return (
+      <p className="mx-auto max-w-2xl px-4 py-8 text-gray-500">
+        {t("common.loading")}
+      </p>
+    );
   }
 
   if (!user?.isAdmin) {
     return (
       <div className="mx-auto max-w-2xl px-4 py-8">
-        <p className="text-gray-700">
-          This page is only available to the platform owner.
-        </p>
+        <p className="text-gray-700">{t("adminSettings.ownerOnly")}</p>
       </div>
     );
   }
@@ -98,7 +106,7 @@ export default function AdminSettingsPage() {
   if (!settings) {
     return (
       <p className="mx-auto max-w-2xl px-4 py-8 text-red-600">
-        {error ?? "Failed to load settings."}
+        {error ?? t("adminSettings.failedToLoad")}
       </p>
     );
   }
@@ -106,20 +114,20 @@ export default function AdminSettingsPage() {
   return (
     <div className="mx-auto max-w-2xl px-4 py-8">
       <div className="mb-6 flex items-center justify-between">
-        <h1 className="text-2xl font-bold text-gray-900">Platform settings</h1>
+        <h1 className="text-2xl font-bold text-gray-900">{t("adminSettings.title")}</h1>
         <Link href="/admin" className="text-sm text-indigo-600 underline">
-          ← Back to overview
+          {t("adminSettings.backToOverview")}
         </Link>
       </div>
 
       <form onSubmit={handleSubmit} className="space-y-8">
         <section>
           <h2 className="mb-3 text-lg font-semibold text-gray-900">
-            Commission fee tiers
+            {t("adminSettings.feeTiersTitle")}
           </h2>
           <div className="space-y-4 rounded-lg border bg-white p-4">
             <div className="grid grid-cols-2 gap-4">
-              <Field label="Tier 1 threshold (฿)">
+              <Field label={t("adminSettings.tier1Threshold")}>
                 <input
                   type="number"
                   min={1}
@@ -132,7 +140,7 @@ export default function AdminSettingsPage() {
                   className="input"
                 />
               </Field>
-              <Field label="Tier 1 rate (%)">
+              <Field label={t("adminSettings.tier1Rate")}>
                 <input
                   type="number"
                   min={0}
@@ -148,11 +156,13 @@ export default function AdminSettingsPage() {
               </Field>
             </div>
             <p className="text-xs text-gray-400">
-              Applies to orders up to ฿{settings.tier1MaxBaht.toLocaleString()}.
+              {t("adminSettings.appliesUpTo", {
+                amount: settings.tier1MaxBaht.toLocaleString(),
+              })}
             </p>
 
             <div className="grid grid-cols-2 gap-4">
-              <Field label="Tier 2 threshold (฿)">
+              <Field label={t("adminSettings.tier2Threshold")}>
                 <input
                   type="number"
                   min={1}
@@ -165,7 +175,7 @@ export default function AdminSettingsPage() {
                   className="input"
                 />
               </Field>
-              <Field label="Tier 2 rate (%)">
+              <Field label={t("adminSettings.tier2Rate")}>
                 <input
                   type="number"
                   min={0}
@@ -181,11 +191,13 @@ export default function AdminSettingsPage() {
               </Field>
             </div>
             <p className="text-xs text-gray-400">
-              Applies to orders from ฿{(settings.tier1MaxBaht + 1).toLocaleString()}{" "}
-              up to ฿{settings.tier2MaxBaht.toLocaleString()}.
+              {t("adminSettings.appliesFromTo", {
+                from: (settings.tier1MaxBaht + 1).toLocaleString(),
+                to: settings.tier2MaxBaht.toLocaleString(),
+              })}
             </p>
 
-            <Field label="Tier 3 rate (%)">
+            <Field label={t("adminSettings.tier3Rate")}>
               <input
                 type="number"
                 min={0}
@@ -200,16 +212,18 @@ export default function AdminSettingsPage() {
               />
             </Field>
             <p className="text-xs text-gray-400">
-              Applies to orders above ฿{settings.tier2MaxBaht.toLocaleString()}.
+              {t("adminSettings.appliesAbove", {
+                amount: settings.tier2MaxBaht.toLocaleString(),
+              })}
             </p>
           </div>
         </section>
 
         <section>
           <h2 className="mb-3 text-lg font-semibold text-gray-900">
-            Admin access
+            {t("adminSettings.adminAccessTitle")}
           </h2>
-          <Field label="Admin emails (one per line)">
+          <Field label={t("adminSettings.adminEmailsLabel")}>
             <textarea
               required
               rows={3}
@@ -219,17 +233,16 @@ export default function AdminSettingsPage() {
             />
           </Field>
           <p className="mt-1 text-xs text-gray-400">
-            Accounts with these emails can view /admin. You cannot remove your
-            own account from this list.
+            {t("adminSettings.adminEmailsHint")}
           </p>
         </section>
 
         <section>
           <h2 className="mb-3 text-lg font-semibold text-gray-900">
-            Contact identities shown to users
+            {t("adminSettings.contactTitle")}
           </h2>
           <div className="space-y-4">
-            <Field label="LINE ID">
+            <Field label={t("adminSettings.lineIdLabel")}>
               <input
                 value={settings.lineId ?? ""}
                 onChange={(e) => update("lineId", e.target.value)}
@@ -237,7 +250,7 @@ export default function AdminSettingsPage() {
                 className="input"
               />
             </Field>
-            <Field label="Instagram">
+            <Field label={t("adminSettings.instagramLabel")}>
               <input
                 value={settings.instagramId ?? ""}
                 onChange={(e) => update("instagramId", e.target.value)}
@@ -245,7 +258,7 @@ export default function AdminSettingsPage() {
                 className="input"
               />
             </Field>
-            <Field label="Phone number">
+            <Field label={t("adminSettings.phoneLabel")}>
               <input
                 value={settings.phoneNumber ?? ""}
                 onChange={(e) => update("phoneNumber", e.target.value)}
@@ -258,7 +271,7 @@ export default function AdminSettingsPage() {
 
         {error && <p className="text-sm text-red-600">{error}</p>}
         {success && (
-          <p className="text-sm text-green-600">Settings saved.</p>
+          <p className="text-sm text-green-600">{t("adminSettings.saved")}</p>
         )}
 
         <button
@@ -266,7 +279,7 @@ export default function AdminSettingsPage() {
           disabled={saving}
           className="w-full rounded-lg bg-indigo-600 px-5 py-2.5 font-medium text-white hover:bg-indigo-700 disabled:opacity-50"
         >
-          {saving ? "Saving…" : "Save settings"}
+          {saving ? t("common.saving") : t("adminSettings.saveButton")}
         </button>
       </form>
     </div>

@@ -4,10 +4,13 @@ import { useEffect, useState, type FormEvent } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useSession } from "@/components/SessionProvider";
+import { useTranslation } from "@/lib/i18n/LanguageContext";
+import { translateApiError } from "@/lib/i18n/apiError";
 
 export default function VerifyPage() {
   const { user, loading, refresh } = useSession();
   const router = useRouter();
+  const { t } = useTranslation();
 
   const [emailCode, setEmailCode] = useState("");
   const [devEmailCode, setDevEmailCode] = useState<string | null>(null);
@@ -50,28 +53,35 @@ export default function VerifyPage() {
         body: JSON.stringify({ code: emailCode }),
       });
       const data = await res.json();
-      if (!res.ok) throw new Error(data.error ?? "Failed to verify");
+      if (!res.ok)
+        throw new Error(translateApiError(t, data.error, t("verify.failed")));
       await refresh();
     } catch (err) {
-      setEmailError(err instanceof Error ? err.message : "Something went wrong");
+      setEmailError(
+        err instanceof Error ? err.message : t("common.somethingWentWrong")
+      );
     } finally {
       setSubmittingEmail(false);
     }
   }
 
   if (loading) {
-    return <p className="mx-auto max-w-sm px-4 py-12 text-gray-500">Loading…</p>;
+    return (
+      <p className="mx-auto max-w-sm px-4 py-12 text-gray-500">
+        {t("common.loading")}
+      </p>
+    );
   }
 
   if (!user) {
     return (
       <div className="mx-auto max-w-sm px-4 py-12">
         <p className="text-gray-700">
-          You need to{" "}
+          {t("common.needLoginPrefix")}{" "}
           <Link href="/login" className="text-indigo-600 underline">
-            log in
+            {t("common.logIn")}
           </Link>{" "}
-          first.
+          {t("verify.needLoginSuffix")}
         </p>
       </div>
     );
@@ -80,34 +90,28 @@ export default function VerifyPage() {
   return (
     <div className="mx-auto max-w-sm px-4 py-12">
       <h1 className="mb-2 text-2xl font-bold text-gray-900">
-        Verify your account
+        {t("verify.title")}
       </h1>
-      <p className="mb-6 text-sm text-gray-500">
-        For trust and safety, you must verify your email before you can buy
-        or sell tickets.
-      </p>
+      <p className="mb-6 text-sm text-gray-500">{t("verify.subtitle")}</p>
 
       {user.emailVerified ? (
         <div className="rounded-lg border border-green-200 bg-green-50 p-4">
-          <p className="font-medium text-green-700">
-            You&apos;re verified. You can now buy and sell tickets.
-          </p>
+          <p className="font-medium text-green-700">{t("verify.verifiedText")}</p>
           <button
             onClick={() => router.push("/")}
             className="mt-3 rounded-lg bg-indigo-600 px-4 py-2 text-sm font-medium text-white hover:bg-indigo-700"
           >
-            Go to marketplace
+            {t("verify.goToMarketplace")}
           </button>
         </div>
       ) : (
         <section>
           <p className="mb-2 text-xs text-gray-400">
-            Sent to {user.email}.{" "}
+            {t("verify.sentTo", { email: user.email })}{" "}
             {devEmailCode ? (
               <span className="text-gray-600">
-                Demo mode — your code is{" "}
-                <span className="font-mono font-semibold">{devEmailCode}</span>
-                .
+                {t("verify.demoModePrefix")}{" "}
+                <span className="font-mono font-semibold">{devEmailCode}</span>.
               </span>
             ) : (
               <button
@@ -116,7 +120,7 @@ export default function VerifyPage() {
                 disabled={resending}
                 className="text-indigo-600 underline"
               >
-                {resending ? "Sending…" : "Resend code"}
+                {resending ? t("verify.resending") : t("verify.resend")}
               </button>
             )}
           </p>
@@ -125,7 +129,7 @@ export default function VerifyPage() {
               required
               value={emailCode}
               onChange={(e) => setEmailCode(e.target.value)}
-              placeholder="6-digit code"
+              placeholder={t("verify.codePlaceholder")}
               className="input"
             />
             <button
@@ -133,7 +137,7 @@ export default function VerifyPage() {
               disabled={submittingEmail}
               className="rounded-lg bg-indigo-600 px-4 py-2 text-sm font-medium text-white hover:bg-indigo-700 disabled:opacity-50"
             >
-              Verify
+              {t("verify.verifyButton")}
             </button>
           </form>
           {emailError && (

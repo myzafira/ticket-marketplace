@@ -3,9 +3,12 @@
 import { useState, type FormEvent } from "react";
 import Link from "next/link";
 import { useSession } from "@/components/SessionProvider";
+import { useTranslation } from "@/lib/i18n/LanguageContext";
+import { translateApiError } from "@/lib/i18n/apiError";
 
 export default function AccountPage() {
   const { user, loading, refresh } = useSession();
+  const { t } = useTranslation();
   const [currentPassword, setCurrentPassword] = useState("");
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
@@ -24,7 +27,7 @@ export default function AccountPage() {
     setSuccess(false);
 
     if (newPassword !== confirmPassword) {
-      setError("New passwords don't match");
+      setError(t("account.passwordMismatch"));
       return;
     }
 
@@ -36,13 +39,16 @@ export default function AccountPage() {
         body: JSON.stringify({ currentPassword, newPassword }),
       });
       const data = await res.json();
-      if (!res.ok) throw new Error(data.error ?? "Failed to change password");
+      if (!res.ok)
+        throw new Error(
+          translateApiError(t, data.error, t("account.failedChangePassword"))
+        );
       setSuccess(true);
       setCurrentPassword("");
       setNewPassword("");
       setConfirmPassword("");
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Something went wrong");
+      setError(err instanceof Error ? err.message : t("common.somethingWentWrong"));
     } finally {
       setSubmitting(false);
     }
@@ -60,12 +66,15 @@ export default function AccountPage() {
         body: JSON.stringify({ nickname: nickname.trim() || null }),
       });
       const data = await res.json();
-      if (!res.ok) throw new Error(data.error ?? "Failed to save nickname");
-      setNicknameSuccess(`Saved — you'll appear as #${data.handle}`);
+      if (!res.ok)
+        throw new Error(
+          translateApiError(t, data.error, t("account.failedSaveNickname"))
+        );
+      setNicknameSuccess(t("account.saved", { handle: data.handle }));
       await refresh();
     } catch (err) {
       setNicknameError(
-        err instanceof Error ? err.message : "Something went wrong"
+        err instanceof Error ? err.message : t("common.somethingWentWrong")
       );
     } finally {
       setSavingNickname(false);
@@ -73,18 +82,22 @@ export default function AccountPage() {
   }
 
   if (loading) {
-    return <p className="mx-auto max-w-sm px-4 py-12 text-gray-500">Loading…</p>;
+    return (
+      <p className="mx-auto max-w-sm px-4 py-12 text-gray-500">
+        {t("common.loading")}
+      </p>
+    );
   }
 
   if (!user) {
     return (
       <div className="mx-auto max-w-sm px-4 py-12">
         <p className="text-gray-700">
-          You need to{" "}
+          {t("common.needLoginPrefix")}{" "}
           <Link href="/login" className="text-indigo-600 underline">
-            log in
+            {t("common.logIn")}
           </Link>{" "}
-          first.
+          {t("common.needLoginSuffixGeneric")}
         </p>
       </div>
     );
@@ -92,23 +105,22 @@ export default function AccountPage() {
 
   return (
     <div className="mx-auto max-w-sm px-4 py-12">
-      <h1 className="mb-1 text-2xl font-bold text-gray-900">Account</h1>
+      <h1 className="mb-1 text-2xl font-bold text-gray-900">{t("account.title")}</h1>
       <p className="mb-6 text-sm text-gray-500">
-        Signed in as {user.name} ({user.email})
+        {t("account.signedInAs", { name: user.name, email: user.email })}
       </p>
 
-      <h2 className="mb-1 font-semibold text-gray-900">Public nickname</h2>
+      <h2 className="mb-1 font-semibold text-gray-900">{t("account.nicknameTitle")}</h2>
       <p className="mb-3 text-sm text-gray-500">
-        Shown to other buyers/sellers instead of a random code, e.g.{" "}
-        <span className="font-medium">TicketFan88-A1</span>. Don&apos;t use
-        your real name or any contact info — it&apos;s still checked and
-        blocked either way.
+        {t("account.nicknameHintPrefix")}{" "}
+        <span className="font-medium">{t("account.nicknameExample")}</span>.{" "}
+        {t("account.nicknameHintSuffix")}
       </p>
       <form onSubmit={handleSaveNickname} className="mb-8 flex gap-2">
         <input
           value={nickname}
           onChange={(e) => setNickname(e.target.value)}
-          placeholder="e.g. TicketFan88"
+          placeholder={t("account.nicknamePlaceholder")}
           maxLength={20}
           className="input flex-1"
         />
@@ -117,7 +129,7 @@ export default function AccountPage() {
           disabled={savingNickname}
           className="rounded-lg bg-indigo-600 px-4 py-2 text-sm font-medium text-white hover:bg-indigo-700 disabled:opacity-50"
         >
-          {savingNickname ? "Saving…" : "Save"}
+          {savingNickname ? t("common.saving") : t("common.save")}
         </button>
       </form>
       {nicknameError && (
@@ -127,12 +139,14 @@ export default function AccountPage() {
         <p className="-mt-6 mb-6 text-sm text-green-600">{nicknameSuccess}</p>
       )}
 
-      <h2 className="mb-3 font-semibold text-gray-900">Change password</h2>
+      <h2 className="mb-3 font-semibold text-gray-900">
+        {t("account.changePasswordTitle")}
+      </h2>
       <form onSubmit={handleSubmit} className="space-y-4">
         <input
           type="password"
           required
-          placeholder="Current password"
+          placeholder={t("account.currentPasswordPlaceholder")}
           value={currentPassword}
           onChange={(e) => setCurrentPassword(e.target.value)}
           className="input"
@@ -141,7 +155,7 @@ export default function AccountPage() {
           type="password"
           required
           minLength={8}
-          placeholder="New password (min 8 characters)"
+          placeholder={t("account.newPasswordPlaceholder")}
           value={newPassword}
           onChange={(e) => setNewPassword(e.target.value)}
           className="input"
@@ -150,21 +164,21 @@ export default function AccountPage() {
           type="password"
           required
           minLength={8}
-          placeholder="Confirm new password"
+          placeholder={t("account.confirmPasswordPlaceholder")}
           value={confirmPassword}
           onChange={(e) => setConfirmPassword(e.target.value)}
           className="input"
         />
         {error && <p className="text-sm text-red-600">{error}</p>}
         {success && (
-          <p className="text-sm text-green-600">Password changed.</p>
+          <p className="text-sm text-green-600">{t("account.passwordChanged")}</p>
         )}
         <button
           type="submit"
           disabled={submitting}
           className="w-full rounded-lg bg-indigo-600 px-5 py-2.5 font-medium text-white hover:bg-indigo-700 disabled:opacity-50"
         >
-          {submitting ? "Updating…" : "Update password"}
+          {submitting ? t("account.updating") : t("account.updateButton")}
         </button>
       </form>
     </div>

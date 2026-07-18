@@ -4,6 +4,8 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useSession } from "@/components/SessionProvider";
 import { formatCents } from "@/lib/format";
+import { useTranslation } from "@/lib/i18n/LanguageContext";
+import { translateApiError } from "@/lib/i18n/apiError";
 
 type AdminStats = {
   totalOrders: number;
@@ -21,6 +23,32 @@ type AdminStats = {
     listing: { eventName: string; seller: { name: string } };
     buyer: { name: string };
   }[];
+};
+
+const REPORT_REASON_KEYS: Record<string, string> = {
+  TICKET_NOT_RECEIVED: "reportForm.reasonTicketNotReceived",
+  WRONG_OR_INVALID_TICKET: "reportForm.reasonWrongTicket",
+  PAYMENT_ISSUE: "reportForm.reasonPaymentIssue",
+  OTHER: "reportForm.reasonOther",
+};
+
+type OrderReport = {
+  id: string;
+  reason: string;
+  message: string;
+  status: "OPEN" | "RESOLVED";
+  createdAt: string;
+  reporter: { name: string; email: string; phoneNumber: string };
+  order: {
+    id: string;
+    totalCents: number;
+    buyer: { name: string; email: string; phoneNumber: string };
+    listing: {
+      id: string;
+      eventName: string;
+      seller: { name: string; email: string; phoneNumber: string };
+    };
+  };
 };
 
 type MatchNotification = {
@@ -42,11 +70,15 @@ type MatchNotification = {
 
 export default function AdminPage() {
   const { user, loading: loadingSession } = useSession();
+  const { t, locale } = useTranslation();
+  const dateLocale = locale === "th" ? "th-TH" : "en-US";
   const [stats, setStats] = useState<AdminStats | null>(null);
   const [notifications, setNotifications] = useState<MatchNotification[]>([]);
+  const [reports, setReports] = useState<OrderReport[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [markingId, setMarkingId] = useState<string | null>(null);
+  const [resolvingId, setResolvingId] = useState<string | null>(null);
 
   useEffect(() => {
     if (!user?.isAdmin) {
@@ -56,17 +88,21 @@ export default function AdminPage() {
     Promise.all([
       fetch("/api/admin/stats").then(async (res) => {
         const data = await res.json();
-        if (!res.ok) throw new Error(data.error ?? "Failed to load stats");
+        if (!res.ok)
+          throw new Error(translateApiError(t, data.error, t("admin.failedToLoadStats")));
         return data;
       }),
       fetch("/api/admin/notifications").then((res) => res.json()),
+      fetch("/api/admin/reports").then((res) => res.json()),
     ])
-      .then(([statsData, notificationsData]) => {
+      .then(([statsData, notificationsData, reportsData]) => {
         setStats(statsData);
         setNotifications(notificationsData.notifications ?? []);
+        setReports(reportsData.reports ?? []);
       })
       .catch((err) => setError(err.message))
       .finally(() => setLoading(false));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user]);
 
   async function handleMarkCalled(id: string) {
@@ -87,19 +123,39 @@ export default function AdminPage() {
     }
   }
 
+  async function handleResolveReport(id: string) {
+    setResolvingId(id);
+    try {
+      const res = await fetch(`/api/admin/reports/${id}/resolve`, {
+        method: "POST",
+      });
+      if (res.ok) {
+        setReports((prev) =>
+          prev.map((r) => (r.id === id ? { ...r, status: "RESOLVED" } : r))
+        );
+      }
+    } finally {
+      setResolvingId(null);
+    }
+  }
+
   if (loadingSession || loading) {
-    return <p className="mx-auto max-w-5xl px-4 py-8 text-gray-500">Loading…</p>;
+    return (
+      <p className="mx-auto max-w-5xl px-4 py-8 text-gray-500">
+        {t("common.loading")}
+      </p>
+    );
   }
 
   if (!user) {
     return (
       <div className="mx-auto max-w-5xl px-4 py-8">
         <p className="text-gray-700">
-          You need to{" "}
+          {t("common.needLoginPrefix")}{" "}
           <Link href="/login" className="text-indigo-600 underline">
-            log in
+            {t("common.logIn")}
           </Link>{" "}
-          to view this page.
+          {t("common.needLoginSuffixGeneric")}
         </p>
       </div>
     );
@@ -108,9 +164,7 @@ export default function AdminPage() {
   if (!user.isAdmin) {
     return (
       <div className="mx-auto max-w-5xl px-4 py-8">
-        <p className="text-gray-700">
-          This page is only available to the platform owner.
-        </p>
+        <p className="text-gray-700">{t("admin.ownerOnly")}</p>
       </div>
     );
   }
@@ -118,7 +172,7 @@ export default function AdminPage() {
   if (error || !stats) {
     return (
       <p className="mx-auto max-w-5xl px-4 py-8 text-red-600">
-        {error ?? "Failed to load stats."}
+        {error ?? t("admin.failedToLoadStats")}
       </p>
     );
   }
@@ -126,18 +180,84 @@ export default function AdminPage() {
   return (
     <div className="mx-auto max-w-5xl px-4 py-8">
       <div className="mb-6 flex items-center justify-between">
-        <h1 className="text-2xl font-bold text-gray-900">Platform revenue</h1>
+        <h1 className="text-2xl font-bold text-gray-900">{t("admin.platformRevenue")}</h1>
         <Link href="/admin/settings" className="text-sm text-indigo-600 underline">
-          Settings
+          {t("admin.settings")}
         </Link>
       </div>
 
       <section className="mb-10">
         <h2 className="mb-3 text-lg font-semibold text-gray-900">
-          Match alerts — needs a call
+          {t("admin.orderReportsTitle")}
+        </h2>
+        {reports.filter((r) => r.status === "OPEN").length === 0 ? (
+          <p className="text-gray-500">{t("admin.noOpenReports")}</p>
+        ) : (
+          <div className="divide-y rounded-lg border bg-white">
+            {reports
+              .filter((r) => r.status === "OPEN")
+              .map((r) => (
+                <div key={r.id} className="p-4">
+                  <div className="flex items-start justify-between gap-4">
+                    <div>
+                      <p className="font-medium text-gray-900">
+                        {r.order.listing.eventName} ·{" "}
+                        {REPORT_REASON_KEYS[r.reason] ? t(REPORT_REASON_KEYS[r.reason]) : r.reason}
+                      </p>
+                      <p className="mt-1 text-sm text-gray-600">
+                        {t("admin.reportedBy", {
+                          name: r.reporter.name,
+                          email: r.reporter.email,
+                          phone: r.reporter.phoneNumber,
+                        })}
+                      </p>
+                      <p className="mt-1 text-sm text-gray-700">{r.message}</p>
+                      <p className="mt-1 text-sm text-gray-600">
+                        {t("admin.buyerLine", {
+                          name: r.order.buyer.name,
+                          email: r.order.buyer.email,
+                          phone: r.order.buyer.phoneNumber,
+                        })}
+                      </p>
+                      <p className="text-sm text-gray-600">
+                        {t("admin.sellerLine", {
+                          name: r.order.listing.seller.name,
+                          email: r.order.listing.seller.email,
+                          phone: r.order.listing.seller.phoneNumber,
+                        })}
+                      </p>
+                      <p className="mt-1 flex gap-3 text-xs">
+                        <Link
+                          href={`/listings/${r.order.listing.id}`}
+                          className="text-indigo-600 underline"
+                        >
+                          {t("admin.viewListing")}
+                        </Link>
+                        <span className="text-gray-400">
+                          {new Date(r.createdAt).toLocaleString(dateLocale)}
+                        </span>
+                      </p>
+                    </div>
+                    <button
+                      onClick={() => handleResolveReport(r.id)}
+                      disabled={resolvingId === r.id}
+                      className="whitespace-nowrap rounded bg-indigo-600 px-3 py-1.5 text-sm text-white hover:bg-indigo-700 disabled:opacity-50"
+                    >
+                      {t("admin.markResolved")}
+                    </button>
+                  </div>
+                </div>
+              ))}
+          </div>
+        )}
+      </section>
+
+      <section className="mb-10">
+        <h2 className="mb-3 text-lg font-semibold text-gray-900">
+          {t("admin.matchAlertsTitle")}
         </h2>
         {notifications.length === 0 ? (
-          <p className="text-gray-500">No matches waiting on a call.</p>
+          <p className="text-gray-500">{t("admin.noMatches")}</p>
         ) : (
           <div className="divide-y rounded-lg border bg-white">
             {notifications.map((n) => (
@@ -146,37 +266,43 @@ export default function AdminPage() {
                   <div>
                     <p className="font-medium text-gray-900">
                       {n.eventName} ·{" "}
-                      {new Date(n.eventDate).toLocaleDateString()}
+                      {new Date(n.eventDate).toLocaleDateString(dateLocale)}
                     </p>
                     <p className="mt-1 text-sm text-gray-600">
-                      Buyer: <span className="font-medium">{n.buyerName}</span>{" "}
-                      — {n.buyerPhone} — {n.buyerEmail}
+                      {t("admin.buyerLine", {
+                        name: n.buyerName,
+                        email: n.buyerEmail,
+                        phone: n.buyerPhone,
+                      })}
                     </p>
                     <p className="text-sm text-gray-600">
-                      Seller: <span className="font-medium">{n.sellerName}</span>{" "}
-                      — {n.sellerPhone} — {n.sellerEmail}
+                      {t("admin.sellerLine", {
+                        name: n.sellerName,
+                        email: n.sellerEmail,
+                        phone: n.sellerPhone,
+                      })}
                     </p>
                     <p className="mt-1 flex gap-3 text-xs">
                       <Link
                         href={`/wanted/${n.buyRequestId}`}
                         className="text-indigo-600 underline"
                       >
-                        View request
+                        {t("admin.viewRequest")}
                       </Link>
                       <Link
                         href={`/listings/${n.listingId}`}
                         className="text-indigo-600 underline"
                       >
-                        View listing
+                        {t("admin.viewListing")}
                       </Link>
                       <span className="text-gray-400">
-                        {new Date(n.createdAt).toLocaleString()}
+                        {new Date(n.createdAt).toLocaleString(dateLocale)}
                       </span>
                     </p>
                   </div>
                   {n.readAt ? (
                     <span className="whitespace-nowrap rounded bg-gray-100 px-2 py-1 text-xs text-gray-500">
-                      Called
+                      {t("admin.called")}
                     </span>
                   ) : (
                     <button
@@ -184,7 +310,7 @@ export default function AdminPage() {
                       disabled={markingId === n.id}
                       className="whitespace-nowrap rounded bg-indigo-600 px-3 py-1.5 text-sm text-white hover:bg-indigo-700 disabled:opacity-50"
                     >
-                      Mark called
+                      {t("admin.markCalled")}
                     </button>
                   )}
                 </div>
@@ -196,21 +322,21 @@ export default function AdminPage() {
 
       <div className="mb-10 grid grid-cols-2 gap-4 sm:grid-cols-4">
         <StatCard
-          label="Platform revenue"
+          label={t("admin.platformRevenue")}
           value={formatCents(stats.platformFeeCents)}
           highlight
         />
-        <StatCard label="Gross volume" value={formatCents(stats.grossVolumeCents)} />
-        <StatCard label="Completed orders" value={String(stats.totalOrders)} />
+        <StatCard label={t("admin.grossVolume")} value={formatCents(stats.grossVolumeCents)} />
+        <StatCard label={t("admin.completedOrders")} value={String(stats.totalOrders)} />
         <StatCard
-          label="Active listings"
+          label={t("admin.activeListings")}
           value={String(stats.activeListingCount)}
         />
       </div>
 
       <section className="mb-10">
         <h2 className="mb-3 text-lg font-semibold text-gray-900">
-          Revenue by fee tier
+          {t("admin.revenueByTier")}
         </h2>
         <div className="divide-y rounded-lg border bg-white">
           {stats.tierBreakdown.map((tier) => (
@@ -221,8 +347,10 @@ export default function AdminPage() {
               <div>
                 <p className="font-medium text-gray-900">{tier.label}</p>
                 <p className="text-sm text-gray-500">
-                  {(tier.rate * 100).toFixed(0)}% commission ·{" "}
-                  {tier.orderCount} order{tier.orderCount === 1 ? "" : "s"}
+                  {t(
+                    tier.orderCount === 1 ? "admin.commission" : "admin.commissionPlural",
+                    { rate: (tier.rate * 100).toFixed(1), count: tier.orderCount }
+                  )}
                 </p>
               </div>
               <p className="font-semibold text-indigo-600">
@@ -235,22 +363,22 @@ export default function AdminPage() {
 
       <section>
         <h2 className="mb-3 text-lg font-semibold text-gray-900">
-          Recent orders
+          {t("admin.recentOrders")}
         </h2>
         {stats.recentOrders.length === 0 ? (
-          <p className="text-gray-500">No completed orders yet.</p>
+          <p className="text-gray-500">{t("admin.noCompletedOrders")}</p>
         ) : (
           <div className="overflow-x-auto rounded-lg border bg-white">
             <table className="w-full text-sm">
               <thead>
                 <tr className="border-b bg-gray-50 text-left text-gray-500">
-                  <th className="p-3 font-medium">Event</th>
-                  <th className="p-3 font-medium">Seller</th>
-                  <th className="p-3 font-medium">Buyer</th>
-                  <th className="p-3 font-medium">Date</th>
-                  <th className="p-3 text-right font-medium">Total</th>
-                  <th className="p-3 text-right font-medium">Fee</th>
-                  <th className="p-3 text-right font-medium">Payout</th>
+                  <th className="p-3 font-medium">{t("admin.colEvent")}</th>
+                  <th className="p-3 font-medium">{t("admin.colSeller")}</th>
+                  <th className="p-3 font-medium">{t("admin.colBuyer")}</th>
+                  <th className="p-3 font-medium">{t("admin.colDate")}</th>
+                  <th className="p-3 text-right font-medium">{t("admin.colTotal")}</th>
+                  <th className="p-3 text-right font-medium">{t("admin.colFee")}</th>
+                  <th className="p-3 text-right font-medium">{t("admin.colPayout")}</th>
                 </tr>
               </thead>
               <tbody>
@@ -264,7 +392,7 @@ export default function AdminPage() {
                     </td>
                     <td className="p-3 text-gray-500">{order.buyer.name}</td>
                     <td className="p-3 text-gray-500">
-                      {new Date(order.createdAt).toLocaleDateString()}
+                      {new Date(order.createdAt).toLocaleDateString(dateLocale)}
                     </td>
                     <td className="p-3 text-right text-gray-900">
                       {formatCents(order.totalCents)}

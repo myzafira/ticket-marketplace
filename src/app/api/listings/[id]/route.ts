@@ -9,6 +9,7 @@ export async function GET(
   { params }: { params: Promise<{ id: string }> }
 ) {
   const { id } = await params;
+  const currentUser = await getCurrentUser();
   const listing = await db.listing.findUnique({
     where: { id },
     include: { seller: { select: { id: true, nickname: true } } },
@@ -18,9 +19,14 @@ export async function GET(
     return NextResponse.json({ error: "Listing not found" }, { status: 404 });
   }
 
-  const [rating, recentReviews] = await Promise.all([
+  const [rating, recentReviews, favorite] = await Promise.all([
     getRatingSummary(listing.seller.id),
     getRecentReviews(listing.seller.id),
+    currentUser
+      ? db.favorite.findUnique({
+          where: { userId_listingId: { userId: currentUser.id, listingId: id } },
+        })
+      : Promise.resolve(null),
   ]);
 
   return NextResponse.json({
@@ -37,6 +43,7 @@ export async function GET(
           reviewer: { handle: toPublicHandle(r.reviewer) },
         })),
       },
+      isFavorited: Boolean(favorite),
     },
   });
 }
