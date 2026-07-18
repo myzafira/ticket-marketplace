@@ -55,6 +55,10 @@ model Listing {
   section     String?
   quantity    Int           @default(1)
   priceCents  Int
+  // Original ticket price the seller paid, used to cap resale markup.
+  // Nullable because listings created before this field existed have no
+  // value on file — they're grandfathered in without a cap.
+  faceValueCents Int?
   description String?
   imageUrl    String?
   status      ListingStatus @default(ACTIVE)
@@ -249,6 +253,10 @@ model PlatformSettings {
   tier2MaxBaht Int   @default(5000)
   tier2Rate    Float @default(0.04)
   tier3Rate    Float @default(0.03)
+
+  // Anti-scalping cap: resale price can't exceed this % of the seller's
+  // declared face value. 150 = up to 1.5x face value (50% markup).
+  maxResaleMarkupPercent Int @default(150)
 
   // Comma-separated list of account emails permitted to view /admin.
   adminEmails String @default("")

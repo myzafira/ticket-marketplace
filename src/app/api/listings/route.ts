@@ -10,6 +10,7 @@ import { imageUrlSchema } from "@/lib/imageUrl";
 import { getRatingSummaries } from "@/lib/ratings";
 import { getSalesCounts } from "@/lib/sellerStats";
 import { findBestMatchingRequest } from "@/lib/matching";
+import { getPlatformSettings } from "@/lib/settings";
 
 const createListingSchema = z.object({
   title: z.string().min(1).max(150),
@@ -21,6 +22,7 @@ const createListingSchema = z.object({
   section: z.string().max(100).optional(),
   quantity: z.number().int().min(1).max(20),
   price: z.number().positive(),
+  faceValue: z.number().positive(),
   description: z.string().max(2000).optional(),
   fulfillsRequestId: z.string().optional(),
   imageUrl: imageUrlSchema,
@@ -147,10 +149,29 @@ export async function POST(request: Request) {
     section,
     quantity,
     price,
+    faceValue,
     description,
     fulfillsRequestId,
     imageUrl,
   } = parsed.data;
+
+  const settings = await getPlatformSettings();
+  const priceCents = bahtToCents(price);
+  const faceValueCents = bahtToCents(faceValue);
+  const maxAllowedCents = Math.round(
+    (faceValueCents * settings.maxResaleMarkupPercent) / 100
+  );
+  if (priceCents > maxAllowedCents) {
+    return NextResponse.json(
+      {
+        error: `Price can't exceed ${settings.maxResaleMarkupPercent}% of face value (max ${(maxAllowedCents / 100).toFixed(2)} THB) to prevent scalping`,
+        errorKey: "errors.priceExceedsMarkupCap",
+        maxAllowedCents,
+        markupPercent: settings.maxResaleMarkupPercent,
+      },
+      { status: 400 }
+    );
+  }
 
   const contactInfoError = checkListingFieldsForContactInfo({
     "listing title": title,
@@ -185,7 +206,7 @@ export async function POST(request: Request) {
       eventName,
       venue,
       eventDate: new Date(eventDate),
-      priceCents: bahtToCents(price),
+      priceCents,
       quantity,
     });
   }
@@ -198,7 +219,8 @@ export async function POST(request: Request) {
       eventDate: new Date(eventDate),
       section,
       quantity,
-      priceCents: bahtToCents(price),
+      priceCents,
+      faceValueCents,
       description,
       imageUrl,
       sellerId: user.id,

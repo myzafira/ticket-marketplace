@@ -5,10 +5,18 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { useSession } from "@/components/SessionProvider";
 import { checkListingFieldsForContactInfo } from "@/lib/moderation";
 import ImageUploadField from "@/components/ImageUploadField";
+import { formatCents, bahtToCents } from "@/lib/format";
 import { useTranslation } from "@/lib/i18n/LanguageContext";
 import { translateApiError } from "@/lib/i18n/apiError";
 
 type FeeTierInfo = { label: string; ratePercent: number };
+
+type MarketPriceStats = {
+  count: number;
+  averageCents?: number;
+  minCents?: number;
+  maxCents?: number;
+};
 
 export default function SellPage() {
   const { t } = useTranslation();
@@ -33,12 +41,17 @@ function SellForm() {
   const [error, setError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const [feeTiers, setFeeTiers] = useState<FeeTierInfo[]>([]);
+  const [maxMarkupPercent, setMaxMarkupPercent] = useState<number | null>(null);
+  const [marketStats, setMarketStats] = useState<MarketPriceStats | null>(null);
   const requestId = searchParams.get("requestId") ?? undefined;
 
   useEffect(() => {
     fetch("/api/settings/fees")
       .then((res) => res.json())
-      .then((data) => setFeeTiers(data.tiers ?? []))
+      .then((data) => {
+        setFeeTiers(data.tiers ?? []);
+        setMaxMarkupPercent(data.maxResaleMarkupPercent ?? null);
+      })
       .catch(() => {});
   }, []);
 
@@ -49,6 +62,7 @@ function SellForm() {
     eventDate: searchParams.get("eventDate") ?? "",
     section: "",
     quantity: searchParams.get("quantity") ?? "1",
+    faceValue: "",
     price: "",
     description: "",
   });
@@ -57,6 +71,39 @@ function SellForm() {
   function update<K extends keyof typeof form>(key: K, value: string) {
     setForm((f) => ({ ...f, [key]: value }));
   }
+
+  // Debounced lookup of what this event's other listings are going for, so
+  // sellers can price fairly without leaving the form.
+  useEffect(() => {
+    const eventName = form.eventName.trim();
+    if (!eventName) {
+      setMarketStats(null);
+      return;
+    }
+    const controller = new AbortController();
+    const timeout = setTimeout(() => {
+      fetch(`/api/listings/price-check?eventName=${encodeURIComponent(eventName)}`, {
+        signal: controller.signal,
+      })
+        .then((res) => res.json())
+        .then((data) => setMarketStats(data.count > 0 ? data : null))
+        .catch(() => {});
+    }, 500);
+    return () => {
+      clearTimeout(timeout);
+      controller.abort();
+    };
+  }, [form.eventName]);
+
+  const faceValueCents = form.faceValue ? bahtToCents(Number(form.faceValue)) : null;
+  const maxAllowedCents =
+    faceValueCents && maxMarkupPercent
+      ? Math.round((faceValueCents * maxMarkupPercent) / 100)
+      : null;
+  const priceCents = form.price ? bahtToCents(Number(form.price)) : null;
+  const priceExceedsCap = Boolean(
+    maxAllowedCents && priceCents && priceCents > maxAllowedCents
+  );
 
   async function handleSubmit(e: FormEvent) {
     e.preventDefault();
@@ -74,6 +121,16 @@ function SellForm() {
       return;
     }
 
+    if (priceExceedsCap && maxAllowedCents && maxMarkupPercent) {
+      setError(
+        t("sell.priceExceedsCap", {
+          percent: maxMarkupPercent,
+          max: formatCents(maxAllowedCents),
+        })
+      );
+      return;
+    }
+
     setSubmitting(true);
     try {
       const res = await fetch("/api/listings", {
@@ -87,14 +144,24 @@ function SellForm() {
           section: form.section || undefined,
           quantity: Number(form.quantity),
           price: Number(form.price),
+          faceValue: Number(form.faceValue),
           description: form.description || undefined,
           fulfillsRequestId: requestId,
           imageUrl: imageUrl || undefined,
         }),
       });
       const data = await res.json();
-      if (!res.ok)
+      if (!res.ok) {
+        if (data.errorKey === "errors.priceExceedsMarkupCap") {
+          throw new Error(
+            t("errors.priceExceedsMarkupCap", {
+              percent: data.markupPercent,
+              max: formatCents(data.maxAllowedCents),
+            })
+          );
+        }
         throw new Error(translateApiError(t, data.error, t("sell.failedToCreate")));
+      }
       router.push(`/listings/${data.listing.id}`);
     } catch (err) {
       setError(err instanceof Error ? err.message : t("common.somethingWentWrong"));
@@ -171,6 +238,16 @@ function SellForm() {
             placeholder={t("sell.eventNamePlaceholder")}
             className="input"
           />
+          {marketStats && marketStats.count > 0 && (
+            <p className="mt-1 text-xs text-gray-400">
+              {t("sell.marketPriceHint", {
+                average: formatCents(marketStats.averageCents!),
+                min: formatCents(marketStats.minCents!),
+                max: formatCents(marketStats.maxCents!),
+                count: marketStats.count,
+              })}
+            </p>
+          )}
         </Field>
 
         <Field label={t("sell.venue")}>
@@ -215,6 +292,20 @@ function SellForm() {
           </Field>
         </div>
 
+        <Field label={t("sell.faceValue")}>
+          <input
+            required
+            type="number"
+            min={0.01}
+            step="0.01"
+            value={form.faceValue}
+            onChange={(e) => update("faceValue", e.target.value)}
+            placeholder={t("sell.pricePlaceholder")}
+            className="input"
+          />
+          <p className="mt-1 text-xs text-gray-400">{t("sell.faceValueHint")}</p>
+        </Field>
+
         <Field label={t("sell.pricePerTicket")}>
           <input
             required
@@ -224,8 +315,20 @@ function SellForm() {
             value={form.price}
             onChange={(e) => update("price", e.target.value)}
             placeholder={t("sell.pricePlaceholder")}
-            className="input"
+            className={`input ${priceExceedsCap ? "border-red-400" : ""}`}
           />
+          {maxAllowedCents !== null && maxMarkupPercent !== null && (
+            <p
+              className={`mt-1 text-xs ${
+                priceExceedsCap ? "font-medium text-red-600" : "text-gray-400"
+              }`}
+            >
+              {t("sell.maxAllowedHint", {
+                max: formatCents(maxAllowedCents),
+                percent: maxMarkupPercent,
+              })}
+            </p>
+          )}
           {feeTiers.length > 0 && (
             <p className="mt-1 text-xs text-gray-400">
               {t("sell.platformFeeHint", {

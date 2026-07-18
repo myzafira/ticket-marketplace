@@ -67,6 +67,9 @@ const en = {
     listingLabel: "Listing",
     sectionLabel: "Section",
     quantityLabel: "Quantity",
+    faceValueLabel: "Face value",
+    markupAbove: "+{percent}% over face value",
+    markupAtOrBelow: "At or below face value",
     sellerIdLabel: "Seller ID",
     reviewsOfSeller: "Reviews of this seller",
     purchaseComplete: "Purchase complete — check your dashboard.",
@@ -161,8 +164,15 @@ const en = {
     sectionOptional: "Section (optional)",
     sectionPlaceholder: "Floor A",
     quantity: "Quantity",
+    faceValue: "Face value per ticket (THB)",
+    faceValueHint:
+      "The price printed on the ticket / what you originally paid. Used to cap resale price and prevent scalping.",
     pricePerTicket: "Price per ticket (THB)",
     pricePlaceholder: "500.00",
+    maxAllowedHint: "Max allowed for this face value: {max} ({percent}% cap).",
+    priceExceedsCap: "Price exceeds the {percent}% anti-scalping cap (max {max}).",
+    marketPriceHint:
+      "Similar listings for this event: average {average}, range {min}–{max} ({count} listings).",
     platformFeeHint: "Platform fee on sale: {tiers} — deducted from your payout.",
     descriptionOptional: "Description (optional)",
     ticketPhotoOptional: "Ticket photo (optional)",
@@ -411,6 +421,10 @@ const en = {
     appliesFromTo: "Applies to orders from ฿{from} up to ฿{to}.",
     tier3Rate: "Tier 3 rate (%)",
     appliesAbove: "Applies to orders above ฿{amount}.",
+    antiScalpingTitle: "Anti-scalping cap",
+    maxMarkupLabel: "Max resale price (% of face value)",
+    maxMarkupHint:
+      "Sellers can't list above {percent}% of the face value they declare — keeps prices from ballooning past what's fair.",
     adminAccessTitle: "Admin access",
     adminEmailsLabel: "Admin emails (one per line)",
     adminEmailsHint:
@@ -463,6 +477,8 @@ const en = {
     conversationNotFound: "Conversation not found",
     verifyBeforeMessagingConversation: "Verify your email before sending a message",
     secondThresholdMustExceedFirst: "The second threshold must be greater than the first",
+    priceExceedsMarkupCap:
+      "Price can't exceed {percent}% of face value (max {max}) to prevent scalping",
     addressTooShort: "Address looks too short — include street, city, and postal code",
     addressNeedsNumber: "Address should include a house/building or street number",
     addressNeedsPostalCode: "Address should include a 5-digit postal code",
@@ -537,6 +553,9 @@ const th: typeof en = {
     listingLabel: "รายการ",
     sectionLabel: "โซน",
     quantityLabel: "จำนวน",
+    faceValueLabel: "ราคาหน้าตั๋ว",
+    markupAbove: "+{percent}% จากราคาหน้าตั๋ว",
+    markupAtOrBelow: "ไม่เกินราคาหน้าตั๋ว",
     sellerIdLabel: "รหัสผู้ขาย",
     reviewsOfSeller: "รีวิวผู้ขายรายนี้",
     purchaseComplete: "ซื้อสำเร็จแล้ว — ไปเช็กที่แดชบอร์ดของคุณได้เลย",
@@ -630,8 +649,15 @@ const th: typeof en = {
     sectionOptional: "โซน (ไม่บังคับ)",
     sectionPlaceholder: "โซน A",
     quantity: "จำนวน",
+    faceValue: "ราคาหน้าตั๋วต่อใบ (บาท)",
+    faceValueHint:
+      "ราคาที่พิมพ์บนตั๋ว หรือราคาที่คุณจ่ายซื้อมาจริง ใช้จำกัดเพดานราคาขายต่อเพื่อป้องกันการเก็งกำไร",
     pricePerTicket: "ราคาต่อใบ (บาท)",
     pricePlaceholder: "500.00",
+    maxAllowedHint: "ราคาสูงสุดที่ขายได้สำหรับราคาหน้าตั๋วนี้: {max} (เพดาน {percent}%)",
+    priceExceedsCap: "ราคาเกินเพดานป้องกันการเก็งกำไร {percent}% (สูงสุด {max})",
+    marketPriceHint:
+      "ตั๋วงานนี้ที่ลงขายอยู่: เฉลี่ย {average} ช่วงราคา {min}–{max} ({count} รายการ)",
     platformFeeHint: "ค่าธรรมเนียมแพลตฟอร์มเมื่อขายได้: {tiers} — หักจากยอดที่คุณจะได้รับ",
     descriptionOptional: "รายละเอียดเพิ่มเติม (ไม่บังคับ)",
     ticketPhotoOptional: "รูปตั๋ว (ไม่บังคับ)",
@@ -878,6 +904,10 @@ const th: typeof en = {
     appliesFromTo: "ใช้กับคำสั่งซื้อตั้งแต่ ฿{from} ถึง ฿{to}",
     tier3Rate: "อัตราระดับ 3 (%)",
     appliesAbove: "ใช้กับคำสั่งซื้อที่เกิน ฿{amount}",
+    antiScalpingTitle: "เพดานป้องกันการเก็งกำไรราคา",
+    maxMarkupLabel: "ราคาขายต่อสูงสุด (% ของราคาหน้าตั๋ว)",
+    maxMarkupHint:
+      "ผู้ขายลงราคาเกิน {percent}% ของราคาหน้าตั๋วที่แจ้งไม่ได้ — ป้องกันไม่ให้ราคาพุ่งสูงเกินความเป็นธรรม",
     adminAccessTitle: "สิทธิ์การเข้าถึงแอดมิน",
     adminEmailsLabel: "อีเมลแอดมิน (บรรทัดละ 1 อีเมล)",
     adminEmailsHint:
@@ -930,6 +960,8 @@ const th: typeof en = {
     conversationNotFound: "ไม่พบบทสนทนานี้",
     verifyBeforeMessagingConversation: "ยืนยันอีเมลก่อนส่งข้อความ",
     secondThresholdMustExceedFirst: "เกณฑ์ที่สองต้องมากกว่าเกณฑ์แรก",
+    priceExceedsMarkupCap:
+      "ราคาขายต้องไม่เกิน {percent}% ของราคาหน้าตั๋ว (สูงสุด {max}) เพื่อป้องกันการเก็งกำไร",
     addressTooShort: "ที่อยู่สั้นเกินไป — กรุณาระบุถนน เขต/อำเภอ และรหัสไปรษณีย์",
     addressNeedsNumber: "ที่อยู่ควรมีเลขที่บ้าน/อาคาร หรือเลขที่ถนน",
     addressNeedsPostalCode: "ที่อยู่ควรมีรหัสไปรษณีย์ 5 หลัก",
