@@ -37,7 +37,7 @@ export async function POST(
       { status: 400 }
     );
   }
-  if (listing.status !== "ACTIVE") {
+  if (listing.status !== "ACTIVE" || listing.eventDate < new Date()) {
     return NextResponse.json(
       { error: "This listing is no longer available" },
       { status: 409 }

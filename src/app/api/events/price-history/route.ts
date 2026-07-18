@@ -23,7 +23,11 @@ export async function GET(request: Request) {
       },
     }),
     db.listing.findMany({
-      where: { eventName: { equals: eventName, mode: "insensitive" }, status: "ACTIVE" },
+      where: {
+        eventName: { equals: eventName, mode: "insensitive" },
+        status: "ACTIVE",
+        eventDate: { gte: new Date() },
+      },
       orderBy: { priceCents: "asc" },
       select: {
         id: true,

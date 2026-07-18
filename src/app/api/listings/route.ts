@@ -57,9 +57,15 @@ export async function GET(request: Request) {
     priceCents.lte = bahtToCents(Number(maxPrice));
   }
 
-  const eventDate: { gte?: Date; lte?: Date } = {};
+  // Never surface listings for events that have already happened — they
+  // can't be fulfilled anymore and just clutter the marketplace.
+  const now = new Date();
+  const eventDate: { gte?: Date; lte?: Date } = { gte: now };
   if (dateFrom && !Number.isNaN(Date.parse(dateFrom))) {
-    eventDate.gte = new Date(dateFrom);
+    const requestedFrom = new Date(dateFrom);
+    if (requestedFrom > now) {
+      eventDate.gte = requestedFrom;
+    }
   }
   if (dateTo && !Number.isNaN(Date.parse(dateTo))) {
     // Inclusive of the whole end day.

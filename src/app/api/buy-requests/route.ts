@@ -28,6 +28,9 @@ export async function GET(request: Request) {
   const buyRequests = await db.buyRequest.findMany({
     where: {
       status: "OPEN",
+      // Once the event date has passed there's no ticket left to fulfill —
+      // drop it from the browse list so the board stays current.
+      eventDate: { gte: new Date() },
       ...(q
         ? {
             OR: [
