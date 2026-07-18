@@ -76,6 +76,25 @@ type FlaggedSeller = {
   listingRestrictedAt: string | null;
 };
 
+const ACTIVITY_ACTION_KEYS: Record<string, string> = {
+  USER_VERIFIED: "admin.activityUserVerified",
+  USER_UNVERIFIED: "admin.activityUserUnverified",
+  SELLER_RESTRICTED: "admin.activitySellerRestricted",
+  SELLER_UNRESTRICTED: "admin.activitySellerUnrestricted",
+  ORDER_REPORT_RESOLVED: "admin.activityOrderReportResolved",
+  LISTING_REPORT_RESOLVED: "admin.activityListingReportResolved",
+  MATCH_MARKED_CALLED: "admin.activityMatchCalled",
+  SETTINGS_UPDATED: "admin.activitySettingsUpdated",
+};
+
+type AdminActivityEntry = {
+  id: string;
+  action: string;
+  targetLabel: string | null;
+  createdAt: string;
+  admin: { name: string };
+};
+
 type MatchNotification = {
   id: string;
   message: string;
@@ -102,6 +121,7 @@ export default function AdminPage() {
   const [reports, setReports] = useState<OrderReport[]>([]);
   const [listingReports, setListingReports] = useState<ListingReport[]>([]);
   const [flaggedSellers, setFlaggedSellers] = useState<FlaggedSeller[]>([]);
+  const [activity, setActivity] = useState<AdminActivityEntry[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [markingId, setMarkingId] = useState<string | null>(null);
@@ -125,6 +145,7 @@ export default function AdminPage() {
       fetch("/api/admin/reports").then((res) => res.json()),
       fetch("/api/admin/listing-reports").then((res) => res.json()),
       fetch("/api/admin/flagged-sellers").then((res) => res.json()),
+      fetch("/api/admin/activity").then((res) => res.json()),
     ])
       .then(
         ([
@@ -133,18 +154,28 @@ export default function AdminPage() {
           reportsData,
           listingReportsData,
           flaggedSellersData,
+          activityData,
         ]) => {
           setStats(statsData);
           setNotifications(notificationsData.notifications ?? []);
           setReports(reportsData.reports ?? []);
           setListingReports(listingReportsData.reports ?? []);
           setFlaggedSellers(flaggedSellersData.sellers ?? []);
+          setActivity(activityData.entries ?? []);
         }
       )
       .catch((err) => setError(err.message))
       .finally(() => setLoading(false));
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user]);
+
+  async function refreshActivity() {
+    const res = await fetch("/api/admin/activity");
+    if (res.ok) {
+      const data = await res.json();
+      setActivity(data.entries ?? []);
+    }
+  }
 
   async function handleMarkCalled(id: string) {
     setMarkingId(id);
@@ -158,6 +189,7 @@ export default function AdminPage() {
             n.id === id ? { ...n, readAt: new Date().toISOString() } : n
           )
         );
+        await refreshActivity();
       }
     } finally {
       setMarkingId(null);
@@ -174,6 +206,7 @@ export default function AdminPage() {
         setReports((prev) =>
           prev.map((r) => (r.id === id ? { ...r, status: "RESOLVED" } : r))
         );
+        await refreshActivity();
       }
     } finally {
       setResolvingId(null);
@@ -190,6 +223,7 @@ export default function AdminPage() {
         setListingReports((prev) =>
           prev.map((r) => (r.id === id ? { ...r, status: "RESOLVED" } : r))
         );
+        await refreshActivity();
       }
     } finally {
       setResolvingListingId(null);
@@ -204,6 +238,7 @@ export default function AdminPage() {
       });
       const data = await res.json();
       if (res.ok) {
+        await refreshActivity();
         setFlaggedSellers((prev) =>
           prev.map((s) =>
             s.id === seller.id
@@ -268,6 +303,31 @@ export default function AdminPage() {
           </Link>
         </div>
       </div>
+
+      <section className="mb-10">
+        <h2 className="mb-3 text-lg font-semibold text-gray-900">
+          {t("admin.activityTitle")}
+        </h2>
+        {activity.length === 0 ? (
+          <p className="text-gray-500">{t("admin.noActivity")}</p>
+        ) : (
+          <div className="max-h-80 divide-y overflow-y-auto rounded-lg border bg-white">
+            {activity.map((entry) => (
+              <div key={entry.id} className="p-3 text-sm">
+                <p className="text-gray-800">
+                  {t(ACTIVITY_ACTION_KEYS[entry.action] ?? entry.action, {
+                    admin: entry.admin.name,
+                    target: entry.targetLabel ?? "",
+                  })}
+                </p>
+                <p className="mt-0.5 text-xs text-gray-400">
+                  {new Date(entry.createdAt).toLocaleString(dateLocale)}
+                </p>
+              </div>
+            ))}
+          </div>
+        )}
+      </section>
 
       <section className="mb-10">
         <h2 className="mb-3 text-lg font-semibold text-gray-900">

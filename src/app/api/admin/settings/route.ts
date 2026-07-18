@@ -3,6 +3,7 @@ import { z } from "zod";
 import { getCurrentUser } from "@/lib/auth";
 import { getPlatformSettings, parseAdminEmails } from "@/lib/settings";
 import { db } from "@/lib/db";
+import { logAdminAction } from "@/lib/adminLog";
 
 const settingsSchema = z
   .object({
@@ -100,6 +101,7 @@ export async function PATCH(request: Request) {
       phoneNumber: parsed.data.phoneNumber?.trim() || null,
     },
   });
+  await logAdminAction(user.id, "SETTINGS_UPDATED");
 
   return NextResponse.json({ settings });
 }

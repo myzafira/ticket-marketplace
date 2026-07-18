@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import { getCurrentUser } from "@/lib/auth";
+import { logAdminAction } from "@/lib/adminLog";
 
 export async function POST(
   _request: Request,
@@ -18,7 +19,9 @@ export async function POST(
   const report = await db.listingReport.update({
     where: { id },
     data: { status: "RESOLVED", resolvedAt: new Date() },
+    include: { listing: { select: { eventName: true } } },
   });
+  await logAdminAction(user.id, "LISTING_REPORT_RESOLVED", report.listing.eventName);
 
   return NextResponse.json({ report });
 }

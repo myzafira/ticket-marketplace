@@ -1,0 +1,16 @@
+-- CreateEnum
+CREATE TYPE "AdminActionType" AS ENUM ('USER_VERIFIED', 'USER_UNVERIFIED', 'SELLER_RESTRICTED', 'SELLER_UNRESTRICTED', 'ORDER_REPORT_RESOLVED', 'LISTING_REPORT_RESOLVED', 'MATCH_MARKED_CALLED', 'SETTINGS_UPDATED');
+
+-- CreateTable
+CREATE TABLE "AdminActionLog" (
+    "id" TEXT NOT NULL,
+    "action" "AdminActionType" NOT NULL,
+    "targetLabel" TEXT,
+    "adminId" TEXT NOT NULL,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
+    CONSTRAINT "AdminActionLog_pkey" PRIMARY KEY ("id")
+);
+
+-- AddForeignKey
+ALTER TABLE "AdminActionLog" ADD CONSTRAINT "AdminActionLog_adminId_fkey" FOREIGN KEY ("adminId") REFERENCES "User"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
