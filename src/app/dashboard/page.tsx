@@ -121,7 +121,15 @@ export default function DashboardPage() {
 
   return (
     <div className="mx-auto max-w-4xl px-4 py-8">
-      <h1 className="mb-6 text-2xl font-bold text-gray-900">{t("dashboard.title")}</h1>
+      <div className="mb-6 flex items-center justify-between">
+        <h1 className="text-2xl font-bold text-gray-900">{t("dashboard.title")}</h1>
+        <span className="rounded-full bg-amber-50 px-3 py-1.5 text-sm font-medium text-amber-700">
+          {t("dashboard.pointsBalance", {
+            points: user.pointsBalance,
+            value: formatCents(user.pointsBalance),
+          })}
+        </span>
+      </div>
 
       <section className="mb-10">
         <h2 className="mb-3 text-lg font-semibold text-gray-900">
@@ -182,6 +190,13 @@ export default function DashboardPage() {
                         <span className="ml-1 text-green-600">
                           {t("dashboard.trustDiscountApplied", {
                             percent: listing.order.feeDiscountPercent,
+                          })}
+                        </span>
+                      )}
+                      {listing.order.pointsRedeemedBySeller > 0 && (
+                        <span className="ml-1 text-amber-600">
+                          {t("dashboard.pointsRedeemed", {
+                            value: formatCents(listing.order.pointsRedeemedBySeller),
                           })}
                         </span>
                       )}

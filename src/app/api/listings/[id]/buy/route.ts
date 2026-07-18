@@ -25,7 +25,7 @@ export async function POST(
   const { id } = await params;
   const listing = await db.listing.findUnique({
     where: { id },
-    include: { seller: { select: { identityVerifiedAt: true } } },
+    include: { seller: { select: { identityVerifiedAt: true, pointsBalance: true } } },
   });
 
   if (!listing) {
@@ -70,9 +70,22 @@ export async function POST(
 
       const totalCents = listing.priceCents * listing.quantity;
       const baseFeeCents = calculatePlatformFeeCents(feeTiers, totalCents);
-      const platformFeeCents = Math.round(
+      const feeAfterTrustDiscountCents = Math.round(
         (baseFeeCents * (100 - feeDiscountPercent)) / 100
       );
+
+      // Both parties earn loyalty points on the sale amount; the seller's
+      // existing balance (earned from past orders) then auto-redeems against
+      // this sale's fee, capped so the fee can't go negative.
+      const pointsEarnedByBuyer = Math.round(
+        (totalCents * settings.pointsEarnRatePercent) / 100
+      );
+      const pointsEarnedBySeller = pointsEarnedByBuyer;
+      const pointsRedeemedBySeller = Math.min(
+        listing.seller.pointsBalance,
+        feeAfterTrustDiscountCents
+      );
+      const platformFeeCents = feeAfterTrustDiscountCents - pointsRedeemedBySeller;
       const sellerPayoutCents = totalCents - platformFeeCents;
 
       const createdOrder = await tx.order.create({
@@ -83,8 +96,48 @@ export async function POST(
           platformFeeCents,
           sellerPayoutCents,
           feeDiscountPercent,
+          pointsEarnedByBuyer,
+          pointsEarnedBySeller,
+          pointsRedeemedBySeller,
           status: "COMPLETED",
         },
+      });
+
+      await tx.user.update({
+        where: { id: user.id },
+        data: { pointsBalance: { increment: pointsEarnedByBuyer } },
+      });
+      await tx.user.update({
+        where: { id: listing.sellerId },
+        data: {
+          pointsBalance: { increment: pointsEarnedBySeller - pointsRedeemedBySeller },
+        },
+      });
+      await tx.pointsTransaction.createMany({
+        data: [
+          {
+            userId: user.id,
+            amount: pointsEarnedByBuyer,
+            reason: "EARNED_PURCHASE",
+            orderId: createdOrder.id,
+          },
+          {
+            userId: listing.sellerId,
+            amount: pointsEarnedBySeller,
+            reason: "EARNED_SALE",
+            orderId: createdOrder.id,
+          },
+          ...(pointsRedeemedBySeller > 0
+            ? [
+                {
+                  userId: listing.sellerId,
+                  amount: -pointsRedeemedBySeller,
+                  reason: "REDEEMED_FEE_DISCOUNT" as const,
+                  orderId: createdOrder.id,
+                },
+              ]
+            : []),
+        ],
       });
 
       // Only auto-close the request if the buyer completing this purchase is

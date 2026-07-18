@@ -12,6 +12,8 @@ type AdminUser = {
   phoneNumber: string;
   nickname: string | null;
   identityVerifiedAt: string | null;
+  listingRestrictedAt: string | null;
+  listingReportCount: number;
   createdAt: string;
 };
 
@@ -24,6 +26,7 @@ export default function AdminUsersPage() {
   const [searched, setSearched] = useState(false);
   const [loading, setLoading] = useState(false);
   const [pendingId, setPendingId] = useState<string | null>(null);
+  const [pendingRestrictId, setPendingRestrictId] = useState<string | null>(null);
 
   async function handleSearch(e: FormEvent) {
     e.preventDefault();
@@ -55,6 +58,27 @@ export default function AdminUsersPage() {
       }
     } finally {
       setPendingId(null);
+    }
+  }
+
+  async function handleToggleRestrict(target: AdminUser) {
+    setPendingRestrictId(target.id);
+    try {
+      const res = await fetch(`/api/admin/users/${target.id}/restrict`, {
+        method: target.listingRestrictedAt ? "DELETE" : "POST",
+      });
+      const data = await res.json();
+      if (res.ok) {
+        setUsers((prev) =>
+          prev.map((u) =>
+            u.id === target.id
+              ? { ...u, listingRestrictedAt: data.listingRestrictedAt }
+              : u
+          )
+        );
+      }
+    } finally {
+      setPendingRestrictId(null);
     }
   }
 
@@ -107,47 +131,74 @@ export default function AdminUsersPage() {
       {users.length > 0 && (
         <div className="divide-y rounded-lg border bg-white">
           {users.map((u) => (
-            <div key={u.id} className="flex items-center justify-between p-4">
-              <div>
-                <p className="font-medium text-gray-900">
-                  {u.name}
-                  {u.nickname && <span className="ml-1 text-gray-400">· {u.nickname}</span>}
-                </p>
-                <p className="text-sm text-gray-500">
-                  {u.email} — {u.phoneNumber}
-                </p>
-                <p className="mt-1 text-xs">
-                  {u.identityVerifiedAt ? (
-                    <span className="rounded bg-blue-50 px-2 py-0.5 font-medium text-blue-700">
-                      {t("adminUsers.verifiedSince", {
-                        date: new Date(u.identityVerifiedAt).toLocaleDateString(dateLocale),
+            <div key={u.id} className="p-4">
+              <div className="flex items-start justify-between gap-3">
+                <div>
+                  <p className="font-medium text-gray-900">
+                    {u.name}
+                    {u.nickname && <span className="ml-1 text-gray-400">· {u.nickname}</span>}
+                  </p>
+                  <p className="text-sm text-gray-500">
+                    {u.email} — {u.phoneNumber}
+                  </p>
+                  <p className="mt-1 flex flex-wrap items-center gap-2 text-xs">
+                    {u.identityVerifiedAt ? (
+                      <span className="rounded bg-blue-50 px-2 py-0.5 font-medium text-blue-700">
+                        {t("adminUsers.verifiedSince", {
+                          date: new Date(u.identityVerifiedAt).toLocaleDateString(dateLocale),
+                        })}
+                      </span>
+                    ) : (
+                      <span className="rounded bg-gray-100 px-2 py-0.5 text-gray-500">
+                        {t("adminUsers.notVerified")}
+                      </span>
+                    )}
+                    {u.listingReportCount > 0 && (
+                      <span className="rounded bg-amber-50 px-2 py-0.5 font-medium text-amber-700">
+                        {t("adminUsers.listingReportCount", { count: u.listingReportCount })}
+                      </span>
+                    )}
+                    {u.listingRestrictedAt && (
+                      <span className="rounded bg-red-50 px-2 py-0.5 font-medium text-red-700">
+                        {t("adminUsers.listingRestricted")}
+                      </span>
+                    )}
+                    <span className="text-gray-400">
+                      {t("adminUsers.joined", {
+                        date: new Date(u.createdAt).toLocaleDateString(dateLocale),
                       })}
                     </span>
-                  ) : (
-                    <span className="rounded bg-gray-100 px-2 py-0.5 text-gray-500">
-                      {t("adminUsers.notVerified")}
-                    </span>
-                  )}
-                  <span className="ml-2 text-gray-400">
-                    {t("adminUsers.joined", {
-                      date: new Date(u.createdAt).toLocaleDateString(dateLocale),
-                    })}
-                  </span>
-                </p>
+                  </p>
+                </div>
+                <div className="flex shrink-0 flex-col gap-2">
+                  <button
+                    onClick={() => handleToggleVerify(u)}
+                    disabled={pendingId === u.id}
+                    className={`whitespace-nowrap rounded px-3 py-1.5 text-sm disabled:opacity-50 ${
+                      u.identityVerifiedAt
+                        ? "bg-gray-100 text-gray-700 hover:bg-gray-200"
+                        : "bg-indigo-600 text-white hover:bg-indigo-700"
+                    }`}
+                  >
+                    {u.identityVerifiedAt
+                      ? t("adminUsers.unverifyButton")
+                      : t("adminUsers.verifyButton")}
+                  </button>
+                  <button
+                    onClick={() => handleToggleRestrict(u)}
+                    disabled={pendingRestrictId === u.id}
+                    className={`whitespace-nowrap rounded px-3 py-1.5 text-sm disabled:opacity-50 ${
+                      u.listingRestrictedAt
+                        ? "bg-gray-100 text-gray-700 hover:bg-gray-200"
+                        : "bg-red-600 text-white hover:bg-red-700"
+                    }`}
+                  >
+                    {u.listingRestrictedAt
+                      ? t("adminUsers.unrestrictButton")
+                      : t("adminUsers.restrictButton")}
+                  </button>
+                </div>
               </div>
-              <button
-                onClick={() => handleToggleVerify(u)}
-                disabled={pendingId === u.id}
-                className={`whitespace-nowrap rounded px-3 py-1.5 text-sm disabled:opacity-50 ${
-                  u.identityVerifiedAt
-                    ? "bg-gray-100 text-gray-700 hover:bg-gray-200"
-                    : "bg-indigo-600 text-white hover:bg-indigo-700"
-                }`}
-              >
-                {u.identityVerifiedAt
-                  ? t("adminUsers.unverifyButton")
-                  : t("adminUsers.verifyButton")}
-              </button>
             </div>
           ))}
         </div>

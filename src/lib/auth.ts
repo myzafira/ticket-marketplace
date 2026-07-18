@@ -49,6 +49,8 @@ export async function getCurrentUser() {
         address: true,
         emailVerified: true,
         createdAt: true,
+        listingRestrictedAt: true,
+        pointsBalance: true,
       },
     });
     if (!user) return null;

@@ -216,6 +216,14 @@ function SellForm() {
     );
   }
 
+  if (user.listingRestrictedAt) {
+    return (
+      <div className="mx-auto max-w-xl px-4 py-8">
+        <p className="text-red-700">{t("sell.listingRestricted")}</p>
+      </div>
+    );
+  }
+
   return (
     <div className="mx-auto max-w-xl px-4 py-8">
       <h1 className="mb-2 text-2xl font-bold text-gray-900">{t("sell.title")}</h1>

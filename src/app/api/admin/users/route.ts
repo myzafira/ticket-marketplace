@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import { getCurrentUser } from "@/lib/auth";
+import { getListingReportCounts } from "@/lib/sellerStats";
 
 export async function GET(request: Request) {
   const user = await getCurrentUser();
@@ -28,11 +29,19 @@ export async function GET(request: Request) {
       phoneNumber: true,
       nickname: true,
       identityVerifiedAt: true,
+      listingRestrictedAt: true,
       createdAt: true,
     },
     orderBy: { createdAt: "desc" },
     take: 20,
   });
 
-  return NextResponse.json({ users });
+  const reportCounts = await getListingReportCounts(users.map((u) => u.id));
+
+  return NextResponse.json({
+    users: users.map((u) => ({
+      ...u,
+      listingReportCount: reportCounts.get(u.id) ?? 0,
+    })),
+  });
 }

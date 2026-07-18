@@ -15,6 +15,8 @@ type Settings = {
   maxResaleMarkupPercent: number;
   trustedSellerMinSales: number;
   trustedSellerFeeDiscountPercent: number;
+  pointsEarnRatePercent: number;
+  sellerReportWarningThreshold: number;
   adminEmails: string;
   lineId: string | null;
   instagramId: string | null;
@@ -76,6 +78,8 @@ export default function AdminSettingsPage() {
           maxResaleMarkupPercent: settings.maxResaleMarkupPercent,
           trustedSellerMinSales: settings.trustedSellerMinSales,
           trustedSellerFeeDiscountPercent: settings.trustedSellerFeeDiscountPercent,
+          pointsEarnRatePercent: settings.pointsEarnRatePercent,
+          sellerReportWarningThreshold: settings.sellerReportWarningThreshold,
           adminEmails: settings.adminEmails,
           lineId: settings.lineId,
           instagramId: settings.instagramId,
@@ -288,6 +292,56 @@ export default function AdminSettingsPage() {
             {t("adminSettings.trustDiscountHint", {
               sales: settings.trustedSellerMinSales,
               percent: settings.trustedSellerFeeDiscountPercent,
+            })}
+          </p>
+        </section>
+
+        <section>
+          <h2 className="mb-3 text-lg font-semibold text-gray-900">
+            {t("adminSettings.pointsTitle")}
+          </h2>
+          <Field label={t("adminSettings.pointsRateLabel")}>
+            <input
+              type="number"
+              min={0}
+              max={100}
+              step={1}
+              required
+              value={settings.pointsEarnRatePercent}
+              onChange={(e) =>
+                update("pointsEarnRatePercent", Number(e.target.value))
+              }
+              className="input"
+            />
+          </Field>
+          <p className="mt-1 text-xs text-gray-400">
+            {t("adminSettings.pointsRateHint", {
+              percent: settings.pointsEarnRatePercent,
+            })}
+          </p>
+        </section>
+
+        <section>
+          <h2 className="mb-3 text-lg font-semibold text-gray-900">
+            {t("adminSettings.reportThresholdTitle")}
+          </h2>
+          <Field label={t("adminSettings.reportThresholdLabel")}>
+            <input
+              type="number"
+              min={1}
+              max={1000}
+              step={1}
+              required
+              value={settings.sellerReportWarningThreshold}
+              onChange={(e) =>
+                update("sellerReportWarningThreshold", Number(e.target.value))
+              }
+              className="input"
+            />
+          </Field>
+          <p className="mt-1 text-xs text-gray-400">
+            {t("adminSettings.reportThresholdHint", {
+              count: settings.sellerReportWarningThreshold,
             })}
           </p>
         </section>

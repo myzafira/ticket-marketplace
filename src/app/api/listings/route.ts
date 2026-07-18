@@ -131,6 +131,15 @@ export async function POST(request: Request) {
       { status: 403 }
     );
   }
+  if (user.listingRestrictedAt) {
+    return NextResponse.json(
+      {
+        error:
+          "Your listing privileges have been restricted due to repeated price complaints. Contact support.",
+      },
+      { status: 403 }
+    );
+  }
 
   const body = await request.json();
   const parsed = createListingSchema.safeParse(body);
