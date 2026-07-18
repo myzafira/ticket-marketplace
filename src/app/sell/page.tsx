@@ -42,6 +42,10 @@ function SellForm() {
   const [submitting, setSubmitting] = useState(false);
   const [feeTiers, setFeeTiers] = useState<FeeTierInfo[]>([]);
   const [maxMarkupPercent, setMaxMarkupPercent] = useState<number | null>(null);
+  const [trustDiscount, setTrustDiscount] = useState<{
+    minSales: number;
+    percent: number;
+  } | null>(null);
   const [marketStats, setMarketStats] = useState<MarketPriceStats | null>(null);
   const requestId = searchParams.get("requestId") ?? undefined;
 
@@ -51,6 +55,12 @@ function SellForm() {
       .then((data) => {
         setFeeTiers(data.tiers ?? []);
         setMaxMarkupPercent(data.maxResaleMarkupPercent ?? null);
+        if (data.trustedSellerFeeDiscountPercent > 0) {
+          setTrustDiscount({
+            minSales: data.trustedSellerMinSales,
+            percent: data.trustedSellerFeeDiscountPercent,
+          });
+        }
       })
       .catch(() => {});
   }, []);
@@ -335,6 +345,14 @@ function SellForm() {
                 tiers: feeTiers
                   .map((tier) => `${tier.ratePercent}% (${tier.label})`)
                   .join(", "),
+              })}
+            </p>
+          )}
+          {trustDiscount && (
+            <p className="mt-1 text-xs text-indigo-500">
+              {t("sell.trustDiscountHint", {
+                sales: trustDiscount.minSales,
+                percent: trustDiscount.percent,
               })}
             </p>
           )}

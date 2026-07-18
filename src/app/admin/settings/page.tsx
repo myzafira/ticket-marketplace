@@ -13,6 +13,8 @@ type Settings = {
   tier2Rate: number;
   tier3Rate: number;
   maxResaleMarkupPercent: number;
+  trustedSellerMinSales: number;
+  trustedSellerFeeDiscountPercent: number;
   adminEmails: string;
   lineId: string | null;
   instagramId: string | null;
@@ -72,6 +74,8 @@ export default function AdminSettingsPage() {
           tier2Rate: settings.tier2Rate,
           tier3Rate: settings.tier3Rate,
           maxResaleMarkupPercent: settings.maxResaleMarkupPercent,
+          trustedSellerMinSales: settings.trustedSellerMinSales,
+          trustedSellerFeeDiscountPercent: settings.trustedSellerFeeDiscountPercent,
           adminEmails: settings.adminEmails,
           lineId: settings.lineId,
           instagramId: settings.instagramId,
@@ -242,6 +246,48 @@ export default function AdminSettingsPage() {
           <p className="mt-1 text-xs text-gray-400">
             {t("adminSettings.maxMarkupHint", {
               percent: settings.maxResaleMarkupPercent,
+            })}
+          </p>
+        </section>
+
+        <section>
+          <h2 className="mb-3 text-lg font-semibold text-gray-900">
+            {t("adminSettings.trustDiscountTitle")}
+          </h2>
+          <div className="grid grid-cols-2 gap-4">
+            <Field label={t("adminSettings.trustDiscountMinSalesLabel")}>
+              <input
+                type="number"
+                min={0}
+                max={1000}
+                step={1}
+                required
+                value={settings.trustedSellerMinSales}
+                onChange={(e) =>
+                  update("trustedSellerMinSales", Number(e.target.value))
+                }
+                className="input"
+              />
+            </Field>
+            <Field label={t("adminSettings.trustDiscountPercentLabel")}>
+              <input
+                type="number"
+                min={0}
+                max={100}
+                step={1}
+                required
+                value={settings.trustedSellerFeeDiscountPercent}
+                onChange={(e) =>
+                  update("trustedSellerFeeDiscountPercent", Number(e.target.value))
+                }
+                className="input"
+              />
+            </Field>
+          </div>
+          <p className="mt-1 text-xs text-gray-400">
+            {t("adminSettings.trustDiscountHint", {
+              sales: settings.trustedSellerMinSales,
+              percent: settings.trustedSellerFeeDiscountPercent,
             })}
           </p>
         </section>

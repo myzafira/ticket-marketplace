@@ -54,6 +54,8 @@ const EXACT_MATCH: Record<string, string> = {
     "errors.addressNeedsNumber",
   "Address should include a 5-digit postal code": "errors.addressNeedsPostalCode",
   "New passwords don't match": "errors.passwordMismatch",
+  "You cannot report your own listing": "errors.cannotReportOwnListing",
+  "You already have an open report for this listing": "errors.alreadyOpenListingReport",
 };
 
 const QUOTED_EMAIL_RE = /^"(.+)" is not a valid email address$/;

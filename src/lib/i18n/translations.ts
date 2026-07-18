@@ -174,6 +174,8 @@ const en = {
     marketPriceHint:
       "Similar listings for this event: average {average}, range {min}–{max} ({count} listings).",
     platformFeeHint: "Platform fee on sale: {tiers} — deducted from your payout.",
+    trustDiscountHint:
+      "💡 Verified sellers with {sales}+ completed sales get {percent}% off this fee.",
     descriptionOptional: "Description (optional)",
     ticketPhotoOptional: "Ticket photo (optional)",
     ticketPhotoHint:
@@ -273,6 +275,7 @@ const en = {
     boughtBy: "Bought by Buyer #{handle}",
     matchedFulfills: "Matched — fulfills a ticket request",
     soldForLine: "Sold for {total} · Platform fee {fee} · You received",
+    trustDiscountApplied: "(trusted seller discount −{percent}%)",
     rateBuyer: "Rate buyer",
     rateSeller: "Rate seller",
     youRatedBuyer: "You rated the buyer:",
@@ -323,6 +326,18 @@ const en = {
     openStatus: "Report submitted — we'll follow up",
     resolvedStatus: "Report resolved",
   },
+  reportListing: {
+    button: "Report this price",
+    hint: "Think this listing is priced unfairly? Let us know why and our team will take a look.",
+    messagePlaceholder: "Why does this price seem unfair?",
+    submit: "Submit report",
+    submitting: "Submitting…",
+    cancel: "Cancel",
+    describeError: "Describe what's wrong with the price",
+    failedToSubmit: "Failed to submit report",
+    openStatus: "Reported — we'll take a look",
+    resolvedStatus: "Report resolved",
+  },
   reviewForm: {
     commentPlaceholder: "Comment (optional)",
     submit: "Submit",
@@ -367,6 +382,9 @@ const en = {
     failedToLoadStats: "Failed to load stats",
     orderReportsTitle: "Order reports",
     noOpenReports: "No open reports.",
+    listingReportsTitle: "Listing price reports",
+    noOpenListingReports: "No open price reports.",
+    listingPriceLine: "Listed at {price} (face value {faceValue})",
     reportedBy: "Reported by {name} ({email} — {phone})",
     buyerLine: "Buyer: {name} — {email} — {phone}",
     sellerLine: "Seller: {name} — {email} — {phone}",
@@ -425,6 +443,11 @@ const en = {
     maxMarkupLabel: "Max resale price (% of face value)",
     maxMarkupHint:
       "Sellers can't list above {percent}% of the face value they declare — keeps prices from ballooning past what's fair.",
+    trustDiscountTitle: "Trusted seller fee discount",
+    trustDiscountMinSalesLabel: "Min. completed sales required",
+    trustDiscountPercentLabel: "Fee discount (%)",
+    trustDiscountHint:
+      "Verified sellers with {sales}+ completed sales get their platform fee cut by {percent}% — a loyalty perk for proven sellers.",
     adminAccessTitle: "Admin access",
     adminEmailsLabel: "Admin emails (one per line)",
     adminEmailsHint:
@@ -479,6 +502,8 @@ const en = {
     secondThresholdMustExceedFirst: "The second threshold must be greater than the first",
     priceExceedsMarkupCap:
       "Price can't exceed {percent}% of face value (max {max}) to prevent scalping",
+    cannotReportOwnListing: "You cannot report your own listing",
+    alreadyOpenListingReport: "You already have an open report for this listing",
     addressTooShort: "Address looks too short — include street, city, and postal code",
     addressNeedsNumber: "Address should include a house/building or street number",
     addressNeedsPostalCode: "Address should include a 5-digit postal code",
@@ -659,6 +684,8 @@ const th: typeof en = {
     marketPriceHint:
       "ตั๋วงานนี้ที่ลงขายอยู่: เฉลี่ย {average} ช่วงราคา {min}–{max} ({count} รายการ)",
     platformFeeHint: "ค่าธรรมเนียมแพลตฟอร์มเมื่อขายได้: {tiers} — หักจากยอดที่คุณจะได้รับ",
+    trustDiscountHint:
+      "💡 ผู้ขายที่ยืนยันตัวตนแล้วและขายสำเร็จตั้งแต่ {sales} ครั้งขึ้นไป จะได้ค่าธรรมเนียมลด {percent}%",
     descriptionOptional: "รายละเอียดเพิ่มเติม (ไม่บังคับ)",
     ticketPhotoOptional: "รูปตั๋ว (ไม่บังคับ)",
     ticketPhotoHint:
@@ -756,6 +783,7 @@ const th: typeof en = {
     boughtBy: "ซื้อโดยผู้ซื้อ #{handle}",
     matchedFulfills: "ตรงกับคำขอซื้อ",
     soldForLine: "ขายได้ {total} · ค่าธรรมเนียมแพลตฟอร์ม {fee} · คุณได้รับ",
+    trustDiscountApplied: "(ส่วนลดผู้ขายน่าเชื่อถือ −{percent}%)",
     rateBuyer: "ให้คะแนนผู้ซื้อ",
     rateSeller: "ให้คะแนนผู้ขาย",
     youRatedBuyer: "คุณให้คะแนนผู้ซื้อแล้ว:",
@@ -806,6 +834,18 @@ const th: typeof en = {
     openStatus: "แจ้งปัญหาแล้ว — ทีมงานจะติดต่อกลับไป",
     resolvedStatus: "ปิดเคสแล้ว",
   },
+  reportListing: {
+    button: "แจ้งราคาแพงเกินจริง",
+    hint: "คิดว่ารายการนี้ตั้งราคาไม่เป็นธรรม? บอกเหตุผลให้เราฟัง ทีมงานจะเข้ามาตรวจสอบ",
+    messagePlaceholder: "ทำไมราคานี้ถึงดูไม่เป็นธรรม?",
+    submit: "ส่งเรื่องแจ้ง",
+    submitting: "กำลังส่ง…",
+    cancel: "ยกเลิก",
+    describeError: "กรุณาอธิบายว่าราคานี้มีปัญหาอย่างไร",
+    failedToSubmit: "ส่งเรื่องแจ้งไม่สำเร็จ",
+    openStatus: "แจ้งแล้ว — ทีมงานจะเข้ามาตรวจสอบ",
+    resolvedStatus: "ปิดเคสแล้ว",
+  },
   reviewForm: {
     commentPlaceholder: "แสดงความคิดเห็น (ไม่บังคับ)",
     submit: "ส่ง",
@@ -850,6 +890,9 @@ const th: typeof en = {
     failedToLoadStats: "โหลดข้อมูลสถิติไม่สำเร็จ",
     orderReportsTitle: "เรื่องแจ้งปัญหา",
     noOpenReports: "ไม่มีเรื่องแจ้งปัญหาที่ค้างอยู่",
+    listingReportsTitle: "เรื่องแจ้งราคาไม่เป็นธรรม",
+    noOpenListingReports: "ไม่มีเรื่องแจ้งราคาที่ค้างอยู่",
+    listingPriceLine: "ลงขายที่ {price} (ราคาหน้าตั๋ว {faceValue})",
     reportedBy: "แจ้งโดย {name} ({email} — {phone})",
     buyerLine: "ผู้ซื้อ: {name} — {email} — {phone}",
     sellerLine: "ผู้ขาย: {name} — {email} — {phone}",
@@ -908,6 +951,11 @@ const th: typeof en = {
     maxMarkupLabel: "ราคาขายต่อสูงสุด (% ของราคาหน้าตั๋ว)",
     maxMarkupHint:
       "ผู้ขายลงราคาเกิน {percent}% ของราคาหน้าตั๋วที่แจ้งไม่ได้ — ป้องกันไม่ให้ราคาพุ่งสูงเกินความเป็นธรรม",
+    trustDiscountTitle: "ส่วนลดค่าธรรมเนียมสำหรับผู้ขายน่าเชื่อถือ",
+    trustDiscountMinSalesLabel: "จำนวนขายสำเร็จขั้นต่ำที่ต้องมี",
+    trustDiscountPercentLabel: "ส่วนลดค่าธรรมเนียม (%)",
+    trustDiscountHint:
+      "ผู้ขายที่ยืนยันตัวตนแล้วและขายสำเร็จตั้งแต่ {sales} ครั้งขึ้นไป จะได้ค่าธรรมเนียมลด {percent}% — เป็นสิทธิพิเศษสำหรับผู้ขายที่พิสูจน์ตัวเองแล้ว",
     adminAccessTitle: "สิทธิ์การเข้าถึงแอดมิน",
     adminEmailsLabel: "อีเมลแอดมิน (บรรทัดละ 1 อีเมล)",
     adminEmailsHint:
@@ -962,6 +1010,8 @@ const th: typeof en = {
     secondThresholdMustExceedFirst: "เกณฑ์ที่สองต้องมากกว่าเกณฑ์แรก",
     priceExceedsMarkupCap:
       "ราคาขายต้องไม่เกิน {percent}% ของราคาหน้าตั๋ว (สูงสุด {max}) เพื่อป้องกันการเก็งกำไร",
+    cannotReportOwnListing: "คุณแจ้งรายการของตัวเองไม่ได้",
+    alreadyOpenListingReport: "คุณมีเรื่องแจ้งที่ยังค้างอยู่สำหรับรายการนี้แล้ว",
     addressTooShort: "ที่อยู่สั้นเกินไป — กรุณาระบุถนน เขต/อำเภอ และรหัสไปรษณีย์",
     addressNeedsNumber: "ที่อยู่ควรมีเลขที่บ้าน/อาคาร หรือเลขที่ถนน",
     addressNeedsPostalCode: "ที่อยู่ควรมีรหัสไปรษณีย์ 5 หลัก",

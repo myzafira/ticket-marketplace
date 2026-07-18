@@ -33,6 +33,7 @@ export type Listing = {
   createdAt: string;
   fulfillsRequestId: string | null;
   isFavorited?: boolean;
+  myReport?: MyReport;
   seller: {
     handle: string;
     rating?: RatingSummary;
@@ -45,6 +46,7 @@ export type Listing = {
     totalCents: number;
     platformFeeCents: number;
     sellerPayoutCents: number;
+    feeDiscountPercent: number;
     ticketProofUrl: string | null;
     buyer: { handle: string };
     myReview?: { rating: number; comment: string | null } | null;

@@ -36,8 +36,9 @@ model User {
   conversationsAsBuyer Conversation[] @relation("ConversationsAsBuyer")
   messagesSent         Message[]      @relation("MessagesSent")
 
-  orderReports OrderReport[]
-  favorites    Favorite[]
+  orderReports   OrderReport[]
+  favorites      Favorite[]
+  listingReports ListingReport[]
 }
 
 enum ListingStatus {
@@ -77,6 +78,31 @@ model Listing {
 
   conversations Conversation[]
   favoritedBy   Favorite[]
+  reports       ListingReport[]
+}
+
+enum ListingReportStatus {
+  OPEN
+  RESOLVED
+}
+
+// Pre-purchase "this price looks unfair" flag — distinct from OrderReport,
+// which is a post-purchase dispute tied to a completed order.
+model ListingReport {
+  id      String              @id @default(cuid())
+  message String
+  status  ListingReportStatus @default(OPEN)
+
+  listing   Listing @relation(fields: [listingId], references: [id])
+  listingId String
+
+  reporter   User   @relation(fields: [reporterId], references: [id])
+  reporterId String
+
+  createdAt  DateTime  @default(now())
+  resolvedAt DateTime?
+
+  @@unique([listingId, reporterId, status])
 }
 
 model Favorite {
@@ -136,6 +162,10 @@ model Order {
   // Photo of the physical/digital ticket (or its QR/barcode) the seller
   // uploads after the sale, so the buyer has proof beyond the chat thread.
   ticketProofUrl     String?
+  // % knocked off the seller's platform fee for being a verified, proven
+  // seller at the time of this sale — recorded here (rather than derived
+  // later) so the receipt stays accurate even if the seller's status changes.
+  feeDiscountPercent Int         @default(0)
   createdAt          DateTime    @default(now())
 
   listing   Listing @relation(fields: [listingId], references: [id])
@@ -257,6 +287,11 @@ model PlatformSettings {
   // Anti-scalping cap: resale price can't exceed this % of the seller's
   // declared face value. 150 = up to 1.5x face value (50% markup).
   maxResaleMarkupPercent Int @default(150)
+
+  // Sellers who are identity-verified and have at least this many completed
+  // sales get their platform fee cut by this percentage, as a loyalty perk.
+  trustedSellerMinSales           Int @default(5)
+  trustedSellerFeeDiscountPercent Int @default(20)
 
   // Comma-separated list of account emails permitted to view /admin.
   adminEmails String @default("")
