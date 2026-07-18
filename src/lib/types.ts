@@ -1,5 +1,13 @@
 export type RatingSummary = { average: number | null; count: number };
 
+export type OrderReportReason =
+  | "TICKET_NOT_RECEIVED"
+  | "WRONG_OR_INVALID_TICKET"
+  | "PAYMENT_ISSUE"
+  | "OTHER";
+
+export type MyReport = { id: string; status: "OPEN" | "RESOLVED" } | null;
+
 export type ReviewSummary = {
   id: string;
   rating: number;
@@ -23,6 +31,7 @@ export type Listing = {
   sellerId: string;
   createdAt: string;
   fulfillsRequestId: string | null;
+  isFavorited?: boolean;
   seller: {
     handle: string;
     rating?: RatingSummary;
@@ -33,8 +42,10 @@ export type Listing = {
     totalCents: number;
     platformFeeCents: number;
     sellerPayoutCents: number;
+    ticketProofUrl: string | null;
     buyer: { handle: string };
     myReview?: { rating: number; comment: string | null } | null;
+    myReport?: MyReport;
   } | null;
 };
 
@@ -43,10 +54,12 @@ export type Order = {
   totalCents: number;
   platformFeeCents: number;
   sellerPayoutCents: number;
+  ticketProofUrl: string | null;
   createdAt: string;
   status: "PENDING" | "COMPLETED" | "CANCELLED";
   listing: Listing;
   myReview?: { rating: number; comment: string | null } | null;
+  myReport?: MyReport;
 };
 
 export type BuyRequest = {

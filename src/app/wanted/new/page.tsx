@@ -5,10 +5,13 @@ import { useRouter } from "next/navigation";
 import { useSession } from "@/components/SessionProvider";
 import { checkListingFieldsForContactInfo } from "@/lib/moderation";
 import ImageUploadField from "@/components/ImageUploadField";
+import { useTranslation } from "@/lib/i18n/LanguageContext";
+import { translateApiError } from "@/lib/i18n/apiError";
 
 export default function NewBuyRequestPage() {
   const { user, loading } = useSession();
   const router = useRouter();
+  const { t } = useTranslation();
   const [error, setError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
 
@@ -57,28 +60,33 @@ export default function NewBuyRequestPage() {
         }),
       });
       const data = await res.json();
-      if (!res.ok) throw new Error(data.error ?? "Failed to post request");
+      if (!res.ok)
+        throw new Error(translateApiError(t, data.error, t("wantedNew.failedToPost")));
       router.push(`/wanted/${data.buyRequest.id}`);
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Something went wrong");
+      setError(err instanceof Error ? err.message : t("common.somethingWentWrong"));
     } finally {
       setSubmitting(false);
     }
   }
 
   if (loading) {
-    return <p className="mx-auto max-w-xl px-4 py-8 text-gray-500">Loading…</p>;
+    return (
+      <p className="mx-auto max-w-xl px-4 py-8 text-gray-500">
+        {t("common.loading")}
+      </p>
+    );
   }
 
   if (!user) {
     return (
       <div className="mx-auto max-w-xl px-4 py-8">
         <p className="text-gray-700">
-          You need to{" "}
+          {t("common.needLoginPrefix")}{" "}
           <a href="/login" className="text-indigo-600 underline">
-            log in
+            {t("common.logIn")}
           </a>{" "}
-          to post a ticket request.
+          {t("wantedNew.needLoginSuffix")}
         </p>
       </div>
     );
@@ -88,11 +96,11 @@ export default function NewBuyRequestPage() {
     return (
       <div className="mx-auto max-w-xl px-4 py-8">
         <p className="text-gray-700">
-          You need to{" "}
+          {t("common.needLoginPrefix")}{" "}
           <a href="/verify" className="text-indigo-600 underline">
-            verify your email
+            {t("wantedNew.needVerifyLink")}
           </a>{" "}
-          before posting a ticket request.
+          {t("wantedNew.needVerifySuffix")}
         </p>
       </div>
     );
@@ -100,36 +108,30 @@ export default function NewBuyRequestPage() {
 
   return (
     <div className="mx-auto max-w-xl px-4 py-8">
-      <h1 className="mb-6 text-2xl font-bold text-gray-900">
-        Post a ticket request
-      </h1>
-      <p className="-mt-4 mb-6 text-sm text-gray-500">
-        Let sellers know what you&apos;re looking for. Sellers respond by
-        listing a matching ticket for sale — all purchases still go through
-        the platform.
-      </p>
+      <h1 className="mb-6 text-2xl font-bold text-gray-900">{t("wantedNew.title")}</h1>
+      <p className="-mt-4 mb-6 text-sm text-gray-500">{t("wantedNew.subtitle")}</p>
 
       <form onSubmit={handleSubmit} className="space-y-4">
-        <Field label="Event name">
+        <Field label={t("wantedNew.eventName")}>
           <input
             required
             value={form.eventName}
             onChange={(e) => update("eventName", e.target.value)}
-            placeholder="Taylor Swift — The Eras Tour"
+            placeholder={t("wantedNew.eventNamePlaceholder")}
             className="input"
           />
         </Field>
 
-        <Field label="Venue (optional)">
+        <Field label={t("wantedNew.venueOptional")}>
           <input
             value={form.venue}
             onChange={(e) => update("venue", e.target.value)}
-            placeholder="Madison Square Garden"
+            placeholder={t("wantedNew.venuePlaceholder")}
             className="input"
           />
         </Field>
 
-        <Field label="Event date">
+        <Field label={t("wantedNew.eventDate")}>
           <input
             required
             type="date"
@@ -140,7 +142,7 @@ export default function NewBuyRequestPage() {
         </Field>
 
         <div className="grid grid-cols-2 gap-4">
-          <Field label="Quantity">
+          <Field label={t("wantedNew.quantity")}>
             <input
               required
               type="number"
@@ -151,7 +153,7 @@ export default function NewBuyRequestPage() {
               className="input"
             />
           </Field>
-          <Field label="Max price per ticket (THB)">
+          <Field label={t("wantedNew.maxPrice")}>
             <input
               required
               type="number"
@@ -159,31 +161,28 @@ export default function NewBuyRequestPage() {
               step="0.01"
               value={form.maxPrice}
               onChange={(e) => update("maxPrice", e.target.value)}
-              placeholder="500.00"
+              placeholder={t("wantedNew.pricePlaceholder")}
               className="input"
             />
           </Field>
         </div>
 
-        <Field label="Notes (optional)">
+        <Field label={t("wantedNew.notesOptional")}>
           <textarea
             value={form.notes}
             onChange={(e) => update("notes", e.target.value)}
             rows={4}
-            placeholder="Any section, seating, or accessibility preferences"
+            placeholder={t("wantedNew.notesPlaceholder")}
             className="input"
           />
         </Field>
 
         <ImageUploadField
-          label="Reference image (optional)"
+          label={t("wantedNew.referenceImage")}
           imageUrl={imageUrl}
           onChange={setImageUrl}
         />
-        <p className="-mt-2 text-xs text-gray-400">
-          A seating chart, screenshot, or example of what you&apos;re looking
-          for. Avoid images with contact details.
-        </p>
+        <p className="-mt-2 text-xs text-gray-400">{t("wantedNew.referenceImageHint")}</p>
 
         {error && <p className="text-sm text-red-600">{error}</p>}
 
@@ -192,7 +191,7 @@ export default function NewBuyRequestPage() {
           disabled={submitting}
           className="w-full rounded-lg bg-indigo-600 px-5 py-2.5 font-medium text-white hover:bg-indigo-700 disabled:opacity-50"
         >
-          {submitting ? "Posting…" : "Post request"}
+          {submitting ? t("wantedNew.posting") : t("wantedNew.post")}
         </button>
       </form>
     </div>

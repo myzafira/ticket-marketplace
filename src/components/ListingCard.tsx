@@ -1,16 +1,30 @@
+"use client";
+
+import { useState } from "react";
 import Link from "next/link";
 import { formatCents } from "@/lib/format";
 import StarRating from "@/components/StarRating";
+import FavoriteButton from "@/components/FavoriteButton";
+import { useTranslation } from "@/lib/i18n/LanguageContext";
 import type { Listing } from "@/lib/types";
 
 export default function ListingCard({ listing }: { listing: Listing }) {
+  const { t, locale } = useTranslation();
   const eventDate = new Date(listing.eventDate);
+  const [isFavorited, setIsFavorited] = useState(Boolean(listing.isFavorited));
 
   return (
     <Link
       href={`/listings/${listing.id}`}
-      className="block rounded-lg border bg-white p-4 shadow-sm transition hover:shadow-md"
+      className="relative block rounded-lg border bg-white p-4 shadow-sm transition hover:shadow-md"
     >
+      <div className="absolute right-3 top-3">
+        <FavoriteButton
+          listingId={listing.id}
+          isFavorited={isFavorited}
+          onChange={setIsFavorited}
+        />
+      </div>
       <div className="flex items-start justify-between gap-3">
         <div className="flex gap-3">
           {listing.imageUrl && (
@@ -27,7 +41,7 @@ export default function ListingCard({ listing }: { listing: Listing }) {
             </h3>
             <p className="text-sm text-gray-500">{listing.venue}</p>
             <p className="mt-1 text-sm text-gray-500">
-              {eventDate.toLocaleDateString(undefined, {
+              {eventDate.toLocaleDateString(locale === "th" ? "th-TH" : "en-US", {
                 weekday: "short",
                 year: "numeric",
                 month: "short",
@@ -36,7 +50,7 @@ export default function ListingCard({ listing }: { listing: Listing }) {
             </p>
             {listing.section && (
               <p className="mt-1 text-xs text-gray-400">
-                Section {listing.section}
+                {t("listingCard.section", { section: listing.section })}
               </p>
             )}
             {listing.seller.rating && (
@@ -51,7 +65,10 @@ export default function ListingCard({ listing }: { listing: Listing }) {
             {formatCents(listing.priceCents)}
           </p>
           <p className="text-xs text-gray-400">
-            {listing.quantity} ticket{listing.quantity > 1 ? "s" : ""}
+            {t(
+              listing.quantity > 1 ? "listingCard.ticketsPlural" : "listingCard.tickets",
+              { count: listing.quantity }
+            )}
           </p>
         </div>
       </div>

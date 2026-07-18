@@ -3,9 +3,11 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import BuyRequestCard from "@/components/BuyRequestCard";
+import { useTranslation } from "@/lib/i18n/LanguageContext";
 import type { BuyRequest } from "@/lib/types";
 
 export default function WantedPage() {
+  const { t } = useTranslation();
   const [buyRequests, setBuyRequests] = useState<BuyRequest[]>([]);
   const [q, setQ] = useState("");
   const [loading, setLoading] = useState(true);
@@ -27,34 +29,29 @@ export default function WantedPage() {
     <div className="mx-auto max-w-5xl px-4 py-8">
       <div className="mb-6 flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">
-            Ticket requests
-          </h1>
-          <p className="mt-1 text-gray-500">
-            Fans looking for tickets. Have one to sell? List it and reach out
-            through a matching listing.
-          </p>
+          <h1 className="text-2xl font-bold text-gray-900">{t("wanted.title")}</h1>
+          <p className="mt-1 text-gray-500">{t("wanted.subtitle")}</p>
         </div>
         <Link
           href="/wanted/new"
           className="whitespace-nowrap rounded-lg bg-indigo-600 px-4 py-2.5 text-sm font-medium text-white hover:bg-indigo-700"
         >
-          Post a request
+          {t("wanted.postRequest")}
         </Link>
       </div>
 
       <input
         type="text"
-        placeholder="Search by event or venue..."
+        placeholder={t("wanted.searchPlaceholder")}
         value={q}
         onChange={(e) => setQ(e.target.value)}
         className="mb-6 w-full rounded-lg border px-4 py-2 focus:border-indigo-500 focus:outline-none"
       />
 
-      {loading && <p className="text-gray-500">Loading requests…</p>}
+      {loading && <p className="text-gray-500">{t("wanted.loading")}</p>}
 
       {!loading && buyRequests.length === 0 && (
-        <p className="text-gray-500">No open requests right now.</p>
+        <p className="text-gray-500">{t("wanted.empty")}</p>
       )}
 
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">

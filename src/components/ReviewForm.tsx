@@ -1,6 +1,8 @@
 "use client";
 
 import { useState } from "react";
+import { useTranslation } from "@/lib/i18n/LanguageContext";
+import { translateApiError } from "@/lib/i18n/apiError";
 
 export default function ReviewForm({
   orderId,
@@ -11,6 +13,7 @@ export default function ReviewForm({
   label: string;
   onSubmitted: (review: { rating: number; comment: string | null }) => void;
 }) {
+  const { t } = useTranslation();
   const [open, setOpen] = useState(false);
   const [rating, setRating] = useState(0);
   const [comment, setComment] = useState("");
@@ -19,7 +22,7 @@ export default function ReviewForm({
 
   async function handleSubmit() {
     if (rating === 0) {
-      setError("Pick a star rating");
+      setError(t("reviewForm.pickStarError"));
       return;
     }
     setError(null);
@@ -31,11 +34,14 @@ export default function ReviewForm({
         body: JSON.stringify({ rating, comment: comment || undefined }),
       });
       const data = await res.json();
-      if (!res.ok) throw new Error(data.error ?? "Failed to submit review");
+      if (!res.ok)
+        throw new Error(
+          translateApiError(t, data.error, t("reviewForm.failedToSubmit"))
+        );
       onSubmitted({ rating, comment: comment || null });
       setOpen(false);
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Something went wrong");
+      setError(err instanceof Error ? err.message : t("common.somethingWentWrong"));
     } finally {
       setSubmitting(false);
     }
@@ -70,7 +76,7 @@ export default function ReviewForm({
       <textarea
         value={comment}
         onChange={(e) => setComment(e.target.value)}
-        placeholder="Comment (optional)"
+        placeholder={t("reviewForm.commentPlaceholder")}
         rows={2}
         className="input mb-2 text-sm"
       />
@@ -81,14 +87,14 @@ export default function ReviewForm({
           disabled={submitting}
           className="rounded bg-indigo-600 px-3 py-1.5 text-sm text-white hover:bg-indigo-700 disabled:opacity-50"
         >
-          {submitting ? "Submitting…" : "Submit"}
+          {submitting ? t("reviewForm.submitting") : t("reviewForm.submit")}
         </button>
         <button
           onClick={() => setOpen(false)}
           disabled={submitting}
           className="rounded bg-gray-100 px-3 py-1.5 text-sm text-gray-700 hover:bg-gray-200"
         >
-          Cancel
+          {t("reviewForm.cancel")}
         </button>
       </div>
     </div>

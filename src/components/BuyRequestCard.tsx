@@ -1,6 +1,9 @@
+"use client";
+
 import Link from "next/link";
 import { formatCents } from "@/lib/format";
 import StarRating from "@/components/StarRating";
+import { useTranslation } from "@/lib/i18n/LanguageContext";
 import type { BuyRequest } from "@/lib/types";
 
 export default function BuyRequestCard({
@@ -8,6 +11,7 @@ export default function BuyRequestCard({
 }: {
   request: BuyRequest;
 }) {
+  const { t, locale } = useTranslation();
   const eventDate = new Date(request.eventDate);
 
   return (
@@ -27,7 +31,7 @@ export default function BuyRequestCard({
           )}
           <div>
             <span className="mb-1 inline-block rounded bg-amber-100 px-2 py-0.5 text-xs font-medium text-amber-700">
-              Wanted
+              {t("wantedCard.badge")}
             </span>
             <h3 className="font-semibold text-gray-900">
               {request.eventName}
@@ -36,7 +40,7 @@ export default function BuyRequestCard({
               <p className="text-sm text-gray-500">{request.venue}</p>
             )}
             <p className="mt-1 text-sm text-gray-500">
-              {eventDate.toLocaleDateString(undefined, {
+              {eventDate.toLocaleDateString(locale === "th" ? "th-TH" : "en-US", {
                 weekday: "short",
                 year: "numeric",
                 month: "short",
@@ -52,10 +56,13 @@ export default function BuyRequestCard({
         </div>
         <div className="text-right">
           <p className="text-lg font-bold text-indigo-600">
-            up to {formatCents(request.maxPriceCents)}
+            {t("wantedCard.upTo", { price: formatCents(request.maxPriceCents) })}
           </p>
           <p className="text-xs text-gray-400">
-            {request.quantity} ticket{request.quantity > 1 ? "s" : ""}
+            {t(
+              request.quantity > 1 ? "wantedCard.ticketsPlural" : "wantedCard.tickets",
+              { count: request.quantity }
+            )}
           </p>
         </div>
       </div>

@@ -1,17 +1,20 @@
 "use client";
 
 import { useState, type FormEvent } from "react";
+import { useTranslation } from "@/lib/i18n/LanguageContext";
+import { translateApiError } from "@/lib/i18n/apiError";
 import type { Message } from "@/lib/types";
 
 export default function MessageThread({
   messages,
   onSend,
-  placeholder = "Type a message…",
+  placeholder,
 }: {
   messages: Message[];
   onSend: (body: string) => Promise<void>;
   placeholder?: string;
 }) {
+  const { t } = useTranslation();
   const [text, setText] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [sending, setSending] = useState(false);
@@ -25,7 +28,11 @@ export default function MessageThread({
       await onSend(text.trim());
       setText("");
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to send message");
+      setError(
+        err instanceof Error
+          ? translateApiError(t, err.message, t("messageThread.failedToSend"))
+          : t("common.somethingWentWrong")
+      );
     } finally {
       setSending(false);
     }
@@ -65,7 +72,7 @@ export default function MessageThread({
         <input
           value={text}
           onChange={(e) => setText(e.target.value)}
-          placeholder={placeholder}
+          placeholder={placeholder ?? t("messageThread.sendPlaceholder")}
           className="input flex-1"
         />
         <button
@@ -73,13 +80,12 @@ export default function MessageThread({
           disabled={sending || !text.trim()}
           className="rounded-lg bg-indigo-600 px-4 py-2 text-sm font-medium text-white hover:bg-indigo-700 disabled:opacity-50"
         >
-          {sending ? "Sending…" : "Send"}
+          {sending ? t("messageThread.sending") : t("messageThread.send")}
         </button>
       </form>
       {error && <p className="mt-1 text-xs text-red-600">{error}</p>}
       <p className="mt-1 text-xs text-gray-400">
-        Contact details (phone numbers, LINE, social handles, links) aren&apos;t
-        allowed in messages — buy and sell only through the platform.
+        {t("messageThread.contactWarning")}
       </p>
     </div>
   );

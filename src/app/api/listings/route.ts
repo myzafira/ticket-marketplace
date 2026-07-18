@@ -25,9 +25,47 @@ const createListingSchema = z.object({
   imageUrl: imageUrlSchema,
 });
 
+const SORT_OPTIONS = {
+  date_asc: { eventDate: "asc" as const },
+  date_desc: { eventDate: "desc" as const },
+  price_asc: { priceCents: "asc" as const },
+  price_desc: { priceCents: "desc" as const },
+};
+
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
   const q = searchParams.get("q")?.trim();
+  const section = searchParams.get("section")?.trim();
+  const minPrice = searchParams.get("minPrice");
+  const maxPrice = searchParams.get("maxPrice");
+  const dateFrom = searchParams.get("dateFrom");
+  const dateTo = searchParams.get("dateTo");
+  const sortParam = searchParams.get("sort");
+  const sort =
+    sortParam && sortParam in SORT_OPTIONS
+      ? (sortParam as keyof typeof SORT_OPTIONS)
+      : "date_asc";
+
+  const priceCents: { gte?: number; lte?: number } = {};
+  if (minPrice && !Number.isNaN(Number(minPrice))) {
+    priceCents.gte = bahtToCents(Number(minPrice));
+  }
+  if (maxPrice && !Number.isNaN(Number(maxPrice))) {
+    priceCents.lte = bahtToCents(Number(maxPrice));
+  }
+
+  const eventDate: { gte?: Date; lte?: Date } = {};
+  if (dateFrom && !Number.isNaN(Date.parse(dateFrom))) {
+    eventDate.gte = new Date(dateFrom);
+  }
+  if (dateTo && !Number.isNaN(Date.parse(dateTo))) {
+    // Inclusive of the whole end day.
+    const end = new Date(dateTo);
+    end.setHours(23, 59, 59, 999);
+    eventDate.lte = end;
+  }
+
+  const currentUser = await getCurrentUser();
 
   const listings = await db.listing.findMany({
     where: {
@@ -41,21 +79,35 @@ export async function GET(request: Request) {
             ],
           }
         : {}),
+      ...(section ? { section: { contains: section } } : {}),
+      ...(Object.keys(priceCents).length > 0 ? { priceCents } : {}),
+      ...(Object.keys(eventDate).length > 0 ? { eventDate } : {}),
     },
-    orderBy: { eventDate: "asc" },
-    include: { seller: { select: { id: true, nickname: true } } },
+    orderBy: SORT_OPTIONS[sort],
+    include: {
+      seller: { select: { id: true, nickname: true } },
+      ...(currentUser
+        ? { favoritedBy: { where: { userId: currentUser.id }, select: { id: true } } }
+        : {}),
+    },
   });
 
   const ratings = await getRatingSummaries(listings.map((l) => l.seller.id));
 
   return NextResponse.json({
-    listings: listings.map((l) => ({
-      ...l,
-      seller: {
-        handle: toPublicHandle(l.seller),
-        rating: ratings.get(l.seller.id) ?? { average: null, count: 0 },
-      },
-    })),
+    listings: listings.map((l) => {
+      const { favoritedBy, ...listing } = l as typeof l & {
+        favoritedBy?: { id: string }[];
+      };
+      return {
+        ...listing,
+        seller: {
+          handle: toPublicHandle(l.seller),
+          rating: ratings.get(l.seller.id) ?? { average: null, count: 0 },
+        },
+        isFavorited: Boolean(favoritedBy && favoritedBy.length > 0),
+      };
+    }),
   });
 }
 

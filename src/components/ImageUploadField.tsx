@@ -1,6 +1,8 @@
 "use client";
 
 import { useState } from "react";
+import { useTranslation } from "@/lib/i18n/LanguageContext";
+import { translateApiError } from "@/lib/i18n/apiError";
 
 export default function ImageUploadField({
   label,
@@ -11,6 +13,7 @@ export default function ImageUploadField({
   imageUrl: string | null;
   onChange: (url: string | null) => void;
 }) {
+  const { t } = useTranslation();
   const [uploading, setUploading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -29,10 +32,13 @@ export default function ImageUploadField({
         body: formData,
       });
       const data = await res.json();
-      if (!res.ok) throw new Error(data.error ?? "Failed to upload image");
+      if (!res.ok)
+        throw new Error(
+          translateApiError(t, data.error, t("imageUpload.failedToUpload"))
+        );
       onChange(data.url);
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Something went wrong");
+      setError(err instanceof Error ? err.message : t("common.somethingWentWrong"));
     } finally {
       setUploading(false);
     }
@@ -57,7 +63,7 @@ export default function ImageUploadField({
             onClick={() => onChange(null)}
             className="rounded bg-gray-100 px-3 py-1.5 text-sm text-gray-700 hover:bg-gray-200"
           >
-            Remove
+            {t("imageUpload.remove")}
           </button>
         </div>
       ) : (
@@ -70,7 +76,9 @@ export default function ImageUploadField({
         />
       )}
 
-      {uploading && <p className="mt-1 text-xs text-gray-400">Uploading…</p>}
+      {uploading && (
+        <p className="mt-1 text-xs text-gray-400">{t("imageUpload.uploading")}</p>
+      )}
       {error && <p className="mt-1 text-xs text-red-600">{error}</p>}
     </label>
   );

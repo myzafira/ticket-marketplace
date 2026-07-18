@@ -5,14 +5,19 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { useSession } from "@/components/SessionProvider";
 import { checkListingFieldsForContactInfo } from "@/lib/moderation";
 import ImageUploadField from "@/components/ImageUploadField";
+import { useTranslation } from "@/lib/i18n/LanguageContext";
+import { translateApiError } from "@/lib/i18n/apiError";
 
 type FeeTierInfo = { label: string; ratePercent: number };
 
 export default function SellPage() {
+  const { t } = useTranslation();
   return (
     <Suspense
       fallback={
-        <p className="mx-auto max-w-xl px-4 py-8 text-gray-500">Loading…</p>
+        <p className="mx-auto max-w-xl px-4 py-8 text-gray-500">
+          {t("common.loading")}
+        </p>
       }
     >
       <SellForm />
@@ -24,6 +29,7 @@ function SellForm() {
   const { user, loading } = useSession();
   const router = useRouter();
   const searchParams = useSearchParams();
+  const { t } = useTranslation();
   const [error, setError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const [feeTiers, setFeeTiers] = useState<FeeTierInfo[]>([]);
@@ -87,28 +93,33 @@ function SellForm() {
         }),
       });
       const data = await res.json();
-      if (!res.ok) throw new Error(data.error ?? "Failed to create listing");
+      if (!res.ok)
+        throw new Error(translateApiError(t, data.error, t("sell.failedToCreate")));
       router.push(`/listings/${data.listing.id}`);
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Something went wrong");
+      setError(err instanceof Error ? err.message : t("common.somethingWentWrong"));
     } finally {
       setSubmitting(false);
     }
   }
 
   if (loading) {
-    return <p className="mx-auto max-w-xl px-4 py-8 text-gray-500">Loading…</p>;
+    return (
+      <p className="mx-auto max-w-xl px-4 py-8 text-gray-500">
+        {t("common.loading")}
+      </p>
+    );
   }
 
   if (!user) {
     return (
       <div className="mx-auto max-w-xl px-4 py-8">
         <p className="text-gray-700">
-          You need to{" "}
+          {t("common.needLoginPrefix")}{" "}
           <a href="/login" className="text-indigo-600 underline">
-            log in
+            {t("common.logIn")}
           </a>{" "}
-          to list a ticket for sale.
+          {t("sell.needLoginSuffix")}
         </p>
       </div>
     );
@@ -118,11 +129,11 @@ function SellForm() {
     return (
       <div className="mx-auto max-w-xl px-4 py-8">
         <p className="text-gray-700">
-          You need to{" "}
+          {t("common.needLoginPrefix")}{" "}
           <a href="/verify" className="text-indigo-600 underline">
-            verify your email
+            {t("sell.needVerifyLink")}
           </a>{" "}
-          before listing a ticket for sale.
+          {t("sell.needVerifySuffix")}
         </p>
       </div>
     );
@@ -130,51 +141,49 @@ function SellForm() {
 
   return (
     <div className="mx-auto max-w-xl px-4 py-8">
-      <h1 className="mb-2 text-2xl font-bold text-gray-900">
-        List a ticket for sale
-      </h1>
+      <h1 className="mb-2 text-2xl font-bold text-gray-900">{t("sell.title")}</h1>
       {requestId && (
         <p className="mb-6 rounded-lg bg-amber-50 px-3 py-2 text-sm text-amber-800">
-          Responding to a{" "}
+          {t("sell.respondingToPrefix")}{" "}
           <a href={`/wanted/${requestId}`} className="underline">
-            ticket request
+            {t("sell.respondingToLink")}
           </a>
-          . That request will automatically close once this listing sells.
+          {t("sell.respondingToSuffix")}
         </p>
       )}
 
       <form onSubmit={handleSubmit} className="space-y-4 mt-6">
-        <Field label="Listing title">
+        <Field label={t("sell.listingTitle")}>
           <input
             required
             value={form.title}
             onChange={(e) => update("title", e.target.value)}
-            placeholder="2x Floor Seats"
+            placeholder={t("sell.listingTitlePlaceholder")}
             className="input"
           />
         </Field>
 
-        <Field label="Event name">
+        <Field label={t("sell.eventName")}>
           <input
             required
             value={form.eventName}
             onChange={(e) => update("eventName", e.target.value)}
-            placeholder="Taylor Swift — The Eras Tour"
+            placeholder={t("sell.eventNamePlaceholder")}
             className="input"
           />
         </Field>
 
-        <Field label="Venue">
+        <Field label={t("sell.venue")}>
           <input
             required
             value={form.venue}
             onChange={(e) => update("venue", e.target.value)}
-            placeholder="Madison Square Garden"
+            placeholder={t("sell.venuePlaceholder")}
             className="input"
           />
         </Field>
 
-        <Field label="Event date">
+        <Field label={t("sell.eventDate")}>
           <input
             required
             type="date"
@@ -185,15 +194,15 @@ function SellForm() {
         </Field>
 
         <div className="grid grid-cols-2 gap-4">
-          <Field label="Section (optional)">
+          <Field label={t("sell.sectionOptional")}>
             <input
               value={form.section}
               onChange={(e) => update("section", e.target.value)}
-              placeholder="Floor A"
+              placeholder={t("sell.sectionPlaceholder")}
               className="input"
             />
           </Field>
-          <Field label="Quantity">
+          <Field label={t("sell.quantity")}>
             <input
               required
               type="number"
@@ -206,7 +215,7 @@ function SellForm() {
           </Field>
         </div>
 
-        <Field label="Price per ticket (THB)">
+        <Field label={t("sell.pricePerTicket")}>
           <input
             required
             type="number"
@@ -214,21 +223,21 @@ function SellForm() {
             step="0.01"
             value={form.price}
             onChange={(e) => update("price", e.target.value)}
-            placeholder="500.00"
+            placeholder={t("sell.pricePlaceholder")}
             className="input"
           />
           {feeTiers.length > 0 && (
             <p className="mt-1 text-xs text-gray-400">
-              Platform fee on sale:{" "}
-              {feeTiers
-                .map((t) => `${t.ratePercent}% (${t.label})`)
-                .join(", ")}{" "}
-              — deducted from your payout.
+              {t("sell.platformFeeHint", {
+                tiers: feeTiers
+                  .map((tier) => `${tier.ratePercent}% (${tier.label})`)
+                  .join(", "),
+              })}
             </p>
           )}
         </Field>
 
-        <Field label="Description (optional)">
+        <Field label={t("sell.descriptionOptional")}>
           <textarea
             value={form.description}
             onChange={(e) => update("description", e.target.value)}
@@ -238,15 +247,11 @@ function SellForm() {
         </Field>
 
         <ImageUploadField
-          label="Ticket photo (optional)"
+          label={t("sell.ticketPhotoOptional")}
           imageUrl={imageUrl}
           onChange={setImageUrl}
         />
-        <p className="-mt-2 text-xs text-gray-400">
-          A photo of your actual ticket (e.g. the e-ticket screenshot) helps
-          buyers trust the listing. Avoid photos with visible barcodes or
-          personal contact details.
-        </p>
+        <p className="-mt-2 text-xs text-gray-400">{t("sell.ticketPhotoHint")}</p>
 
         {error && <p className="text-sm text-red-600">{error}</p>}
 
@@ -255,7 +260,7 @@ function SellForm() {
           disabled={submitting}
           className="w-full rounded-lg bg-indigo-600 px-5 py-2.5 font-medium text-white hover:bg-indigo-700 disabled:opacity-50"
         >
-          {submitting ? "Publishing…" : "Publish listing"}
+          {submitting ? t("sell.publishing") : t("sell.publish")}
         </button>
       </form>
     </div>

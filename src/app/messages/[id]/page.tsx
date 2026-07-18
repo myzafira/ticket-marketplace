@@ -4,6 +4,8 @@ import { useEffect, useState, use } from "react";
 import Link from "next/link";
 import { useSession } from "@/components/SessionProvider";
 import MessageThread from "@/components/MessageThread";
+import { useTranslation } from "@/lib/i18n/LanguageContext";
+import { translateApiError } from "@/lib/i18n/apiError";
 import type { Message } from "@/lib/types";
 
 type ConversationDetail = {
@@ -19,6 +21,7 @@ export default function ConversationThreadPage({
 }) {
   const { id } = use(params);
   const { user, loading: loadingSession } = useSession();
+  const { t } = useTranslation();
   const [conversation, setConversation] = useState<ConversationDetail | null>(
     null
   );
@@ -34,12 +37,16 @@ export default function ConversationThreadPage({
     fetch(`/api/conversations/${id}/messages`)
       .then(async (res) => {
         const data = await res.json();
-        if (!res.ok) throw new Error(data.error ?? "Failed to load conversation");
+        if (!res.ok)
+          throw new Error(
+            translateApiError(t, data.error, t("conversationDetail.failedToLoad"))
+          );
         setConversation(data.conversation);
         setMessages(data.messages ?? []);
       })
       .catch((err) => setError(err.message))
       .finally(() => setLoading(false));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [id, user]);
 
   async function handleSendMessage(body: string) {
@@ -49,23 +56,30 @@ export default function ConversationThreadPage({
       body: JSON.stringify({ body }),
     });
     const data = await res.json();
-    if (!res.ok) throw new Error(data.error ?? "Failed to send message");
+    if (!res.ok)
+      throw new Error(
+        translateApiError(t, data.error, t("conversationDetail.failedToSend"))
+      );
     setMessages((prev) => [...prev, data.message]);
   }
 
   if (loadingSession || loading) {
-    return <p className="mx-auto max-w-2xl px-4 py-8 text-gray-500">Loading…</p>;
+    return (
+      <p className="mx-auto max-w-2xl px-4 py-8 text-gray-500">
+        {t("common.loading")}
+      </p>
+    );
   }
 
   if (!user) {
     return (
       <div className="mx-auto max-w-2xl px-4 py-8">
         <p className="text-gray-700">
-          You need to{" "}
+          {t("common.needLoginPrefix")}{" "}
           <Link href="/login" className="text-indigo-600 underline">
-            log in
+            {t("common.logIn")}
           </Link>{" "}
-          first.
+          {t("common.needLoginSuffixGeneric")}
         </p>
       </div>
     );
@@ -74,7 +88,7 @@ export default function ConversationThreadPage({
   if (!conversation) {
     return (
       <p className="mx-auto max-w-2xl px-4 py-8 text-gray-500">
-        {error ?? "Conversation not found."}
+        {error ?? t("conversationDetail.notFound")}
       </p>
     );
   }
@@ -82,11 +96,13 @@ export default function ConversationThreadPage({
   return (
     <div className="mx-auto max-w-2xl px-4 py-8">
       <Link href="/messages" className="text-sm text-indigo-600 underline">
-        ← All messages
+        {t("conversationDetail.allMessages")}
       </Link>
       <div className="mt-3 rounded-lg border bg-white p-6 shadow-sm">
         <p className="mb-1 text-xs text-gray-400">
-          Conversation with #{conversation.otherParty.handle}
+          {t("conversationDetail.conversationWith", {
+            handle: conversation.otherParty.handle,
+          })}
         </p>
         <h1 className="mb-4 text-lg font-semibold text-gray-900">
           <Link

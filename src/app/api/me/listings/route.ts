@@ -17,6 +17,7 @@ export async function GET() {
         include: {
           buyer: { select: { id: true, nickname: true } },
           reviews: { where: { reviewerId: user.id } },
+          reports: { where: { reporterId: user.id }, orderBy: { createdAt: "desc" } },
         },
       },
     },
@@ -25,7 +26,7 @@ export async function GET() {
   return NextResponse.json({
     listings: listings.map((l) => {
       if (!l.order) return { ...l, order: null };
-      const { reviews, ...order } = l.order;
+      const { reviews, reports, ...order } = l.order;
       return {
         ...l,
         order: {
@@ -33,6 +34,9 @@ export async function GET() {
           buyer: { handle: toPublicHandle(l.order.buyer) },
           myReview: reviews[0]
             ? { rating: reviews[0].rating, comment: reviews[0].comment }
+            : null,
+          myReport: reports[0]
+            ? { id: reports[0].id, status: reports[0].status }
             : null,
         },
       };

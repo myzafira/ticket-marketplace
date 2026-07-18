@@ -5,10 +5,13 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { useSession } from "@/components/SessionProvider";
 import { checkAddressLooksReal } from "@/lib/addressValidation";
+import { useTranslation } from "@/lib/i18n/LanguageContext";
+import { translateApiError } from "@/lib/i18n/apiError";
 
 export default function SignupPage() {
   const router = useRouter();
   const { refresh } = useSession();
+  const { t } = useTranslation();
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -23,7 +26,7 @@ export default function SignupPage() {
 
     const addressError = checkAddressLooksReal(address);
     if (addressError) {
-      setError(addressError);
+      setError(translateApiError(t, addressError));
       return;
     }
 
@@ -35,7 +38,8 @@ export default function SignupPage() {
         body: JSON.stringify({ name, email, password, phoneNumber, address }),
       });
       const data = await res.json();
-      if (!res.ok) throw new Error(data.error ?? "Failed to sign up");
+      if (!res.ok)
+        throw new Error(translateApiError(t, data.error, t("signup.failed")));
       sessionStorage.setItem(
         "devVerificationCodes",
         JSON.stringify({ email: data.devEmailCode })
@@ -43,7 +47,7 @@ export default function SignupPage() {
       await refresh();
       router.push("/verify");
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Something went wrong");
+      setError(err instanceof Error ? err.message : t("common.somethingWentWrong"));
     } finally {
       setSubmitting(false);
     }
@@ -52,13 +56,13 @@ export default function SignupPage() {
   return (
     <div className="mx-auto max-w-sm px-4 py-12">
       <h1 className="mb-6 text-2xl font-bold text-gray-900">
-        Create an account
+        {t("signup.title")}
       </h1>
       <form onSubmit={handleSubmit} className="space-y-4">
         <input
           type="text"
           required
-          placeholder="Name"
+          placeholder={t("signup.namePlaceholder")}
           value={name}
           onChange={(e) => setName(e.target.value)}
           className="input"
@@ -66,7 +70,7 @@ export default function SignupPage() {
         <input
           type="email"
           required
-          placeholder="Email"
+          placeholder={t("signup.emailPlaceholder")}
           value={email}
           onChange={(e) => setEmail(e.target.value)}
           className="input"
@@ -74,7 +78,7 @@ export default function SignupPage() {
         <input
           type="tel"
           required
-          placeholder="Phone number"
+          placeholder={t("signup.phonePlaceholder")}
           value={phoneNumber}
           onChange={(e) => setPhoneNumber(e.target.value)}
           className="input"
@@ -82,7 +86,7 @@ export default function SignupPage() {
         <input
           type="text"
           required
-          placeholder="Address (street, city, 5-digit postal code)"
+          placeholder={t("signup.addressPlaceholder")}
           value={address}
           onChange={(e) => setAddress(e.target.value)}
           className="input"
@@ -91,7 +95,7 @@ export default function SignupPage() {
           type="password"
           required
           minLength={8}
-          placeholder="Password (min 8 characters)"
+          placeholder={t("signup.passwordPlaceholder")}
           value={password}
           onChange={(e) => setPassword(e.target.value)}
           className="input"
@@ -102,13 +106,13 @@ export default function SignupPage() {
           disabled={submitting}
           className="w-full rounded-lg bg-indigo-600 px-5 py-2.5 font-medium text-white hover:bg-indigo-700 disabled:opacity-50"
         >
-          {submitting ? "Creating account…" : "Sign up"}
+          {submitting ? t("signup.submitting") : t("signup.submit")}
         </button>
       </form>
       <p className="mt-4 text-sm text-gray-500">
-        Already have an account?{" "}
+        {t("signup.haveAccount")}{" "}
         <Link href="/login" className="text-indigo-600 underline">
-          Log in
+          {t("signup.login")}
         </Link>
       </p>
     </div>

@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useTranslation } from "@/lib/i18n/LanguageContext";
 
 type Contact = {
   lineId: string | null;
@@ -9,6 +10,7 @@ type Contact = {
 };
 
 export default function Footer() {
+  const { t } = useTranslation();
   const [contact, setContact] = useState<Contact | null>(null);
 
   useEffect(() => {
@@ -26,11 +28,23 @@ export default function Footer() {
   return (
     <footer className="border-t bg-white">
       <div className="mx-auto max-w-5xl px-4 py-6 text-sm text-gray-500">
-        <p className="mb-2 font-medium text-gray-700">Contact TicketRight</p>
+        <p className="mb-2 font-medium text-gray-700">{t("footer.contactTitle")}</p>
         <div className="flex flex-wrap gap-x-6 gap-y-1">
-          {contact.lineId && <span>LINE: {contact.lineId}</span>}
-          {contact.instagramId && <span>Instagram: {contact.instagramId}</span>}
-          {contact.phoneNumber && <span>Tel: {contact.phoneNumber}</span>}
+          {contact.lineId && (
+            <span>
+              {t("footer.line")}: {contact.lineId}
+            </span>
+          )}
+          {contact.instagramId && (
+            <span>
+              {t("footer.instagram")}: {contact.instagramId}
+            </span>
+          )}
+          {contact.phoneNumber && (
+            <span>
+              {t("footer.tel")}: {contact.phoneNumber}
+            </span>
+          )}
         </div>
       </div>
     </footer>
