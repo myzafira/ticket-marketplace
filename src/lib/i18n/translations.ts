@@ -337,6 +337,14 @@ const en = {
   starRating: {
     noReviewsYet: "No reviews yet",
   },
+  trust: {
+    verifiedBadge: "Verified",
+    verifiedTooltip: "This person's identity was confirmed by TicketRight staff",
+    soldCount: "Sold {count} time",
+    soldCountPlural: "Sold {count} times",
+    boughtCount: "Bought {count} time",
+    boughtCountPlural: "Bought {count} times",
+  },
   favorite: {
     save: "Save",
     saved: "Saved",
@@ -374,6 +382,20 @@ const en = {
     colTotal: "Total",
     colFee: "Fee",
     colPayout: "Payout",
+  },
+  adminUsers: {
+    title: "Users",
+    backToOverview: "← Back to overview",
+    ownerOnly: "This page is only available to the platform owner.",
+    searchPlaceholder: "Search by name or email",
+    searchButton: "Search",
+    noResults: "No users found.",
+    prompt: "Search for a user to view or change their verification status.",
+    verifyButton: "Mark identity verified",
+    unverifyButton: "Remove verification",
+    verifiedSince: "Verified since {date}",
+    notVerified: "Not verified",
+    joined: "Joined {date}",
   },
   adminSettings: {
     title: "Platform settings",
@@ -782,6 +804,14 @@ const th: typeof en = {
   starRating: {
     noReviewsYet: "ยังไม่มีรีวิว",
   },
+  trust: {
+    verifiedBadge: "ยืนยันตัวตนแล้ว",
+    verifiedTooltip: "ทีมงาน TicketRight ยืนยันตัวตนของบุคคลนี้แล้ว",
+    soldCount: "ขายสำเร็จ {count} ครั้ง",
+    soldCountPlural: "ขายสำเร็จ {count} ครั้ง",
+    boughtCount: "ซื้อสำเร็จ {count} ครั้ง",
+    boughtCountPlural: "ซื้อสำเร็จ {count} ครั้ง",
+  },
   favorite: {
     save: "บันทึก",
     saved: "บันทึกแล้ว",
@@ -819,6 +849,20 @@ const th: typeof en = {
     colTotal: "ยอดรวม",
     colFee: "ค่าธรรมเนียม",
     colPayout: "ยอดจ่าย",
+  },
+  adminUsers: {
+    title: "ผู้ใช้งาน",
+    backToOverview: "← กลับไปหน้าภาพรวม",
+    ownerOnly: "หน้านี้สำหรับเจ้าของแพลตฟอร์มเท่านั้น",
+    searchPlaceholder: "ค้นหาจากชื่อหรืออีเมล",
+    searchButton: "ค้นหา",
+    noResults: "ไม่พบผู้ใช้งาน",
+    prompt: "ค้นหาผู้ใช้งานเพื่อดูหรือเปลี่ยนสถานะการยืนยันตัวตน",
+    verifyButton: "ยืนยันตัวตน",
+    unverifyButton: "ยกเลิกการยืนยันตัวตน",
+    verifiedSince: "ยืนยันตัวตนเมื่อ {date}",
+    notVerified: "ยังไม่ได้ยืนยันตัวตน",
+    joined: "สมัครเมื่อ {date}",
   },
   adminSettings: {
     title: "ตั้งค่าแพลตฟอร์ม",

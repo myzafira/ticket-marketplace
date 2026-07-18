@@ -181,9 +181,14 @@ export default function AdminPage() {
     <div className="mx-auto max-w-5xl px-4 py-8">
       <div className="mb-6 flex items-center justify-between">
         <h1 className="text-2xl font-bold text-gray-900">{t("admin.platformRevenue")}</h1>
-        <Link href="/admin/settings" className="text-sm text-indigo-600 underline">
-          {t("admin.settings")}
-        </Link>
+        <div className="flex gap-4">
+          <Link href="/admin/users" className="text-sm text-indigo-600 underline">
+            {t("adminUsers.title")}
+          </Link>
+          <Link href="/admin/settings" className="text-sm text-indigo-600 underline">
+            {t("admin.settings")}
+          </Link>
+        </div>
       </div>
 
       <section className="mb-10">

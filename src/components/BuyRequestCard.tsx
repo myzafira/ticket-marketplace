@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { formatCents } from "@/lib/format";
 import StarRating from "@/components/StarRating";
+import VerifiedBadge from "@/components/VerifiedBadge";
 import { useTranslation } from "@/lib/i18n/LanguageContext";
 import type { BuyRequest } from "@/lib/types";
 
@@ -48,8 +49,19 @@ export default function BuyRequestCard({
               })}
             </p>
             {request.buyer.rating && (
-              <p className="mt-1">
+              <p className="mt-1 flex flex-wrap items-center gap-1.5">
                 <StarRating summary={request.buyer.rating} />
+                {request.buyer.isVerified && <VerifiedBadge />}
+              </p>
+            )}
+            {Boolean(request.buyer.purchaseCount) && (
+              <p className="mt-1 text-xs text-gray-400">
+                {t(
+                  request.buyer.purchaseCount === 1
+                    ? "trust.boughtCount"
+                    : "trust.boughtCountPlural",
+                  { count: request.buyer.purchaseCount! }
+                )}
               </p>
             )}
           </div>

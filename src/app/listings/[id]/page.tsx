@@ -6,6 +6,7 @@ import { useSession } from "@/components/SessionProvider";
 import StarRating from "@/components/StarRating";
 import MessageThread from "@/components/MessageThread";
 import FavoriteButton from "@/components/FavoriteButton";
+import VerifiedBadge from "@/components/VerifiedBadge";
 import { useTranslation } from "@/lib/i18n/LanguageContext";
 import { translateApiError } from "@/lib/i18n/apiError";
 import type { Listing, Message } from "@/lib/types";
@@ -163,11 +164,22 @@ export default function ListingDetailPage({
           <div>
             <dt className="text-gray-400">{t("listingDetail.sellerIdLabel")}</dt>
             <dd className="text-gray-900">
-              #{listing.seller.handle}
-              {listing.seller.rating && (
-                <span className="ml-2">
+              <div className="flex flex-wrap items-center gap-1.5">
+                <span>#{listing.seller.handle}</span>
+                {listing.seller.rating && (
                   <StarRating summary={listing.seller.rating} />
-                </span>
+                )}
+                {listing.seller.isVerified && <VerifiedBadge />}
+              </div>
+              {Boolean(listing.seller.salesCount) && (
+                <p className="mt-0.5 text-xs text-gray-400">
+                  {t(
+                    listing.seller.salesCount === 1
+                      ? "trust.soldCount"
+                      : "trust.soldCountPlural",
+                    { count: listing.seller.salesCount! }
+                  )}
+                </p>
               )}
             </dd>
           </div>
