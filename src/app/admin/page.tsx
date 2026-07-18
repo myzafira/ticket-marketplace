@@ -51,6 +51,22 @@ type OrderReport = {
   };
 };
 
+type ListingReport = {
+  id: string;
+  message: string;
+  status: "OPEN" | "RESOLVED";
+  createdAt: string;
+  reporter: { name: string; email: string; phoneNumber: string };
+  listing: {
+    id: string;
+    title: string;
+    eventName: string;
+    priceCents: number;
+    faceValueCents: number | null;
+    seller: { name: string; email: string; phoneNumber: string };
+  };
+};
+
 type MatchNotification = {
   id: string;
   message: string;
@@ -75,10 +91,12 @@ export default function AdminPage() {
   const [stats, setStats] = useState<AdminStats | null>(null);
   const [notifications, setNotifications] = useState<MatchNotification[]>([]);
   const [reports, setReports] = useState<OrderReport[]>([]);
+  const [listingReports, setListingReports] = useState<ListingReport[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [markingId, setMarkingId] = useState<string | null>(null);
   const [resolvingId, setResolvingId] = useState<string | null>(null);
+  const [resolvingListingId, setResolvingListingId] = useState<string | null>(null);
 
   useEffect(() => {
     if (!user?.isAdmin) {
@@ -94,11 +112,13 @@ export default function AdminPage() {
       }),
       fetch("/api/admin/notifications").then((res) => res.json()),
       fetch("/api/admin/reports").then((res) => res.json()),
+      fetch("/api/admin/listing-reports").then((res) => res.json()),
     ])
-      .then(([statsData, notificationsData, reportsData]) => {
+      .then(([statsData, notificationsData, reportsData, listingReportsData]) => {
         setStats(statsData);
         setNotifications(notificationsData.notifications ?? []);
         setReports(reportsData.reports ?? []);
+        setListingReports(listingReportsData.reports ?? []);
       })
       .catch((err) => setError(err.message))
       .finally(() => setLoading(false));
@@ -136,6 +156,22 @@ export default function AdminPage() {
       }
     } finally {
       setResolvingId(null);
+    }
+  }
+
+  async function handleResolveListingReport(id: string) {
+    setResolvingListingId(id);
+    try {
+      const res = await fetch(`/api/admin/listing-reports/${id}/resolve`, {
+        method: "POST",
+      });
+      if (res.ok) {
+        setListingReports((prev) =>
+          prev.map((r) => (r.id === id ? { ...r, status: "RESOLVED" } : r))
+        );
+      }
+    } finally {
+      setResolvingListingId(null);
     }
   }
 
@@ -246,6 +282,72 @@ export default function AdminPage() {
                     <button
                       onClick={() => handleResolveReport(r.id)}
                       disabled={resolvingId === r.id}
+                      className="whitespace-nowrap rounded bg-indigo-600 px-3 py-1.5 text-sm text-white hover:bg-indigo-700 disabled:opacity-50"
+                    >
+                      {t("admin.markResolved")}
+                    </button>
+                  </div>
+                </div>
+              ))}
+          </div>
+        )}
+      </section>
+
+      <section className="mb-10">
+        <h2 className="mb-3 text-lg font-semibold text-gray-900">
+          {t("admin.listingReportsTitle")}
+        </h2>
+        {listingReports.filter((r) => r.status === "OPEN").length === 0 ? (
+          <p className="text-gray-500">{t("admin.noOpenListingReports")}</p>
+        ) : (
+          <div className="divide-y rounded-lg border bg-white">
+            {listingReports
+              .filter((r) => r.status === "OPEN")
+              .map((r) => (
+                <div key={r.id} className="p-4">
+                  <div className="flex items-start justify-between gap-4">
+                    <div>
+                      <p className="font-medium text-gray-900">
+                        {r.listing.eventName} — {r.listing.title}
+                      </p>
+                      <p className="mt-1 text-sm text-gray-600">
+                        {t("admin.reportedBy", {
+                          name: r.reporter.name,
+                          email: r.reporter.email,
+                          phone: r.reporter.phoneNumber,
+                        })}
+                      </p>
+                      <p className="mt-1 text-sm text-gray-700">{r.message}</p>
+                      <p className="mt-1 text-sm text-gray-600">
+                        {t("admin.listingPriceLine", {
+                          price: formatCents(r.listing.priceCents),
+                          faceValue: r.listing.faceValueCents
+                            ? formatCents(r.listing.faceValueCents)
+                            : "—",
+                        })}
+                      </p>
+                      <p className="text-sm text-gray-600">
+                        {t("admin.sellerLine", {
+                          name: r.listing.seller.name,
+                          email: r.listing.seller.email,
+                          phone: r.listing.seller.phoneNumber,
+                        })}
+                      </p>
+                      <p className="mt-1 flex gap-3 text-xs">
+                        <Link
+                          href={`/listings/${r.listing.id}`}
+                          className="text-indigo-600 underline"
+                        >
+                          {t("admin.viewListing")}
+                        </Link>
+                        <span className="text-gray-400">
+                          {new Date(r.createdAt).toLocaleString(dateLocale)}
+                        </span>
+                      </p>
+                    </div>
+                    <button
+                      onClick={() => handleResolveListingReport(r.id)}
+                      disabled={resolvingListingId === r.id}
                       className="whitespace-nowrap rounded bg-indigo-600 px-3 py-1.5 text-sm text-white hover:bg-indigo-700 disabled:opacity-50"
                     >
                       {t("admin.markResolved")}

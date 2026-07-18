@@ -11,5 +11,7 @@ export async function GET() {
   return NextResponse.json({
     tiers,
     maxResaleMarkupPercent: settings.maxResaleMarkupPercent,
+    trustedSellerMinSales: settings.trustedSellerMinSales,
+    trustedSellerFeeDiscountPercent: settings.trustedSellerFeeDiscountPercent,
   });
 }

@@ -22,7 +22,7 @@ export async function GET(
     return NextResponse.json({ error: "Listing not found" }, { status: 404 });
   }
 
-  const [rating, recentReviews, favorite, salesCounts] = await Promise.all([
+  const [rating, recentReviews, favorite, salesCounts, myReport] = await Promise.all([
     getRatingSummary(listing.seller.id),
     getRecentReviews(listing.seller.id),
     currentUser
@@ -31,6 +31,12 @@ export async function GET(
         })
       : Promise.resolve(null),
     getSalesCounts([listing.seller.id]),
+    currentUser
+      ? db.listingReport.findFirst({
+          where: { listingId: id, reporterId: currentUser.id },
+          orderBy: { createdAt: "desc" },
+        })
+      : Promise.resolve(null),
   ]);
 
   return NextResponse.json({
@@ -50,6 +56,7 @@ export async function GET(
         })),
       },
       isFavorited: Boolean(favorite),
+      myReport: myReport ? { id: myReport.id, status: myReport.status } : null,
     },
   });
 }

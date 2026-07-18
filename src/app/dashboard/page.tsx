@@ -178,6 +178,13 @@ export default function DashboardPage() {
                       <span className="font-medium text-gray-700">
                         {formatCents(listing.order.sellerPayoutCents)}
                       </span>
+                      {listing.order.feeDiscountPercent > 0 && (
+                        <span className="ml-1 text-green-600">
+                          {t("dashboard.trustDiscountApplied", {
+                            percent: listing.order.feeDiscountPercent,
+                          })}
+                        </span>
+                      )}
                     </p>
                   )}
                   {listing.order && (

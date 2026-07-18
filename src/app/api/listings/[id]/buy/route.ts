@@ -3,6 +3,7 @@ import { db } from "@/lib/db";
 import { getCurrentUser, isFullyVerified } from "@/lib/auth";
 import { buildFeeTiers, calculatePlatformFeeCents } from "@/lib/fees";
 import { getPlatformSettings } from "@/lib/settings";
+import { getSalesCounts } from "@/lib/sellerStats";
 
 // Stub checkout: no real payment processor is wired up yet.
 // This immediately marks the listing sold and records a completed order.
@@ -22,7 +23,10 @@ export async function POST(
   }
 
   const { id } = await params;
-  const listing = await db.listing.findUnique({ where: { id } });
+  const listing = await db.listing.findUnique({
+    where: { id },
+    include: { seller: { select: { identityVerifiedAt: true } } },
+  });
 
   if (!listing) {
     return NextResponse.json({ error: "Listing not found" }, { status: 404 });
@@ -43,6 +47,17 @@ export async function POST(
   const settings = await getPlatformSettings();
   const feeTiers = buildFeeTiers(settings);
 
+  // Verified sellers with a proven track record pay a reduced platform fee
+  // as a loyalty perk — the discount is locked in at purchase time so past
+  // receipts stay accurate even if the seller's status changes later.
+  const salesCounts = await getSalesCounts([listing.sellerId]);
+  const sellerQualifiesForDiscount =
+    Boolean(listing.seller.identityVerifiedAt) &&
+    (salesCounts.get(listing.sellerId) ?? 0) >= settings.trustedSellerMinSales;
+  const feeDiscountPercent = sellerQualifiesForDiscount
+    ? settings.trustedSellerFeeDiscountPercent
+    : 0;
+
   try {
     const order = await db.$transaction(async (tx) => {
       const updated = await tx.listing.updateMany({
@@ -54,7 +69,10 @@ export async function POST(
       }
 
       const totalCents = listing.priceCents * listing.quantity;
-      const platformFeeCents = calculatePlatformFeeCents(feeTiers, totalCents);
+      const baseFeeCents = calculatePlatformFeeCents(feeTiers, totalCents);
+      const platformFeeCents = Math.round(
+        (baseFeeCents * (100 - feeDiscountPercent)) / 100
+      );
       const sellerPayoutCents = totalCents - platformFeeCents;
 
       const createdOrder = await tx.order.create({
@@ -64,6 +82,7 @@ export async function POST(
           totalCents,
           platformFeeCents,
           sellerPayoutCents,
+          feeDiscountPercent,
           status: "COMPLETED",
         },
       });

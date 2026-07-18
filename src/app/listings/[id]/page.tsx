@@ -7,6 +7,7 @@ import StarRating from "@/components/StarRating";
 import MessageThread from "@/components/MessageThread";
 import FavoriteButton from "@/components/FavoriteButton";
 import VerifiedBadge from "@/components/VerifiedBadge";
+import ReportListingButton from "@/components/ReportListingButton";
 import { useTranslation } from "@/lib/i18n/LanguageContext";
 import { translateApiError } from "@/lib/i18n/apiError";
 import type { Listing, Message } from "@/lib/types";
@@ -273,6 +274,18 @@ export default function ListingDetailPage({
             </button>
           )}
         </div>
+
+        {user && !isOwner && !isSold && (
+          <div className="mt-3 flex justify-end">
+            <ReportListingButton
+              listingId={listing.id}
+              myReport={listing.myReport}
+              onReported={(report) =>
+                setListing((prev) => (prev ? { ...prev, myReport: report } : prev))
+              }
+            />
+          </div>
+        )}
 
         {error && <p className="mt-3 text-sm text-red-600">{error}</p>}
 
