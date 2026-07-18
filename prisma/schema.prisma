@@ -49,6 +49,7 @@ model User {
   favorites         Favorite[]
   listingReports    ListingReport[]
   pointsTransactions PointsTransaction[]
+  adminActions      AdminActionLog[]
 }
 
 enum PointsTransactionReason {
@@ -309,6 +310,34 @@ model AdminNotification {
 
   readAt    DateTime?
   createdAt DateTime  @default(now())
+}
+
+enum AdminActionType {
+  USER_VERIFIED
+  USER_UNVERIFIED
+  SELLER_RESTRICTED
+  SELLER_UNRESTRICTED
+  ORDER_REPORT_RESOLVED
+  LISTING_REPORT_RESOLVED
+  MATCH_MARKED_CALLED
+  SETTINGS_UPDATED
+}
+
+// Audit trail of admin actions — with multiple admins sharing the same
+// panel, this is how one admin sees what another already handled instead
+// of duplicating or losing track of work.
+model AdminActionLog {
+  id     String          @id @default(cuid())
+  action AdminActionType
+  // Human-readable context (target user's name, event name, etc.) — plain
+  // text rather than a generic polymorphic relation since each action type
+  // points at a different model.
+  targetLabel String?
+
+  admin   User   @relation(fields: [adminId], references: [id])
+  adminId String
+
+  createdAt DateTime @default(now())
 }
 
 model PlatformSettings {
