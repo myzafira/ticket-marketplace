@@ -12,6 +12,7 @@ type Settings = {
   tier2MaxBaht: number;
   tier2Rate: number;
   tier3Rate: number;
+  maxResaleMarkupPercent: number;
   adminEmails: string;
   lineId: string | null;
   instagramId: string | null;
@@ -70,6 +71,7 @@ export default function AdminSettingsPage() {
           tier2MaxBaht: settings.tier2MaxBaht,
           tier2Rate: settings.tier2Rate,
           tier3Rate: settings.tier3Rate,
+          maxResaleMarkupPercent: settings.maxResaleMarkupPercent,
           adminEmails: settings.adminEmails,
           lineId: settings.lineId,
           instagramId: settings.instagramId,
@@ -217,6 +219,31 @@ export default function AdminSettingsPage() {
               })}
             </p>
           </div>
+        </section>
+
+        <section>
+          <h2 className="mb-3 text-lg font-semibold text-gray-900">
+            {t("adminSettings.antiScalpingTitle")}
+          </h2>
+          <Field label={t("adminSettings.maxMarkupLabel")}>
+            <input
+              type="number"
+              min={100}
+              max={1000}
+              step={1}
+              required
+              value={settings.maxResaleMarkupPercent}
+              onChange={(e) =>
+                update("maxResaleMarkupPercent", Number(e.target.value))
+              }
+              className="input"
+            />
+          </Field>
+          <p className="mt-1 text-xs text-gray-400">
+            {t("adminSettings.maxMarkupHint", {
+              percent: settings.maxResaleMarkupPercent,
+            })}
+          </p>
         </section>
 
         <section>

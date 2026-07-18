@@ -161,6 +161,25 @@ export default function ListingDetailPage({
             <dt className="text-gray-400">{t("listingDetail.quantityLabel")}</dt>
             <dd className="text-gray-900">{listing.quantity}</dd>
           </div>
+          {listing.faceValueCents !== null && (
+            <div>
+              <dt className="text-gray-400">{t("listingDetail.faceValueLabel")}</dt>
+              <dd className="text-gray-900">
+                {formatCents(listing.faceValueCents)}
+                <span className="ml-1 text-xs text-gray-400">
+                  (
+                  {listing.priceCents > listing.faceValueCents
+                    ? t("listingDetail.markupAbove", {
+                        percent: Math.round(
+                          (listing.priceCents / listing.faceValueCents - 1) * 100
+                        ),
+                      })
+                    : t("listingDetail.markupAtOrBelow")}
+                  )
+                </span>
+              </dd>
+            </div>
+          )}
           <div>
             <dt className="text-gray-400">{t("listingDetail.sellerIdLabel")}</dt>
             <dd className="text-gray-900">

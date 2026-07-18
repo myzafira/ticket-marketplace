@@ -8,5 +8,8 @@ export async function GET() {
     label: t.label,
     ratePercent: Math.round(t.rate * 1000) / 10,
   }));
-  return NextResponse.json({ tiers });
+  return NextResponse.json({
+    tiers,
+    maxResaleMarkupPercent: settings.maxResaleMarkupPercent,
+  });
 }

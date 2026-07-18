@@ -25,6 +25,7 @@ export type Listing = {
   section: string | null;
   quantity: number;
   priceCents: number;
+  faceValueCents: number | null;
   description: string | null;
   imageUrl: string | null;
   status: "ACTIVE" | "SOLD" | "CANCELLED";
