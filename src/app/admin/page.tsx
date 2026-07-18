@@ -25,55 +25,12 @@ type AdminStats = {
   }[];
 };
 
-const REPORT_REASON_KEYS: Record<string, string> = {
-  TICKET_NOT_RECEIVED: "reportForm.reasonTicketNotReceived",
-  WRONG_OR_INVALID_TICKET: "reportForm.reasonWrongTicket",
-  PAYMENT_ISSUE: "reportForm.reasonPaymentIssue",
-  OTHER: "reportForm.reasonOther",
-};
-
-type OrderReport = {
-  id: string;
-  reason: string;
-  message: string;
-  status: "OPEN" | "RESOLVED";
-  createdAt: string;
-  reporter: { name: string; email: string; phoneNumber: string };
-  order: {
-    id: string;
-    totalCents: number;
-    buyer: { name: string; email: string; phoneNumber: string };
-    listing: {
-      id: string;
-      eventName: string;
-      seller: { name: string; email: string; phoneNumber: string };
-    };
-  };
-};
-
-type ListingReport = {
-  id: string;
-  message: string;
-  status: "OPEN" | "RESOLVED";
-  createdAt: string;
-  reporter: { name: string; email: string; phoneNumber: string };
-  listing: {
-    id: string;
-    title: string;
-    eventName: string;
-    priceCents: number;
-    faceValueCents: number | null;
-    seller: { name: string; email: string; phoneNumber: string };
-  };
-};
-
-type FlaggedSeller = {
-  id: string;
-  name: string;
-  email: string;
-  phoneNumber: string;
-  listingReportCount: number;
-  listingRestrictedAt: string | null;
+type TasksSummary = {
+  openOrderReports: number;
+  openListingReports: number;
+  unreadMatches: number;
+  flaggedSellers: number;
+  total: number;
 };
 
 const ACTIVITY_ACTION_KEYS: Record<string, string> = {
@@ -95,39 +52,15 @@ type AdminActivityEntry = {
   admin: { name: string };
 };
 
-type MatchNotification = {
-  id: string;
-  message: string;
-  eventName: string;
-  eventDate: string;
-  buyerName: string;
-  buyerPhone: string;
-  buyerEmail: string;
-  sellerName: string;
-  sellerPhone: string;
-  sellerEmail: string;
-  buyRequestId: string;
-  listingId: string;
-  readAt: string | null;
-  createdAt: string;
-};
-
 export default function AdminPage() {
   const { user, loading: loadingSession } = useSession();
   const { t, locale } = useTranslation();
   const dateLocale = locale === "th" ? "th-TH" : "en-US";
   const [stats, setStats] = useState<AdminStats | null>(null);
-  const [notifications, setNotifications] = useState<MatchNotification[]>([]);
-  const [reports, setReports] = useState<OrderReport[]>([]);
-  const [listingReports, setListingReports] = useState<ListingReport[]>([]);
-  const [flaggedSellers, setFlaggedSellers] = useState<FlaggedSeller[]>([]);
+  const [tasksSummary, setTasksSummary] = useState<TasksSummary | null>(null);
   const [activity, setActivity] = useState<AdminActivityEntry[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [markingId, setMarkingId] = useState<string | null>(null);
-  const [resolvingId, setResolvingId] = useState<string | null>(null);
-  const [resolvingListingId, setResolvingListingId] = useState<string | null>(null);
-  const [restrictingId, setRestrictingId] = useState<string | null>(null);
 
   useEffect(() => {
     if (!user?.isAdmin) {
@@ -141,116 +74,18 @@ export default function AdminPage() {
           throw new Error(translateApiError(t, data.error, t("admin.failedToLoadStats")));
         return data;
       }),
-      fetch("/api/admin/notifications").then((res) => res.json()),
-      fetch("/api/admin/reports").then((res) => res.json()),
-      fetch("/api/admin/listing-reports").then((res) => res.json()),
-      fetch("/api/admin/flagged-sellers").then((res) => res.json()),
+      fetch("/api/admin/tasks/summary").then((res) => res.json()),
       fetch("/api/admin/activity").then((res) => res.json()),
     ])
-      .then(
-        ([
-          statsData,
-          notificationsData,
-          reportsData,
-          listingReportsData,
-          flaggedSellersData,
-          activityData,
-        ]) => {
-          setStats(statsData);
-          setNotifications(notificationsData.notifications ?? []);
-          setReports(reportsData.reports ?? []);
-          setListingReports(listingReportsData.reports ?? []);
-          setFlaggedSellers(flaggedSellersData.sellers ?? []);
-          setActivity(activityData.entries ?? []);
-        }
-      )
+      .then(([statsData, tasksSummaryData, activityData]) => {
+        setStats(statsData);
+        setTasksSummary(tasksSummaryData);
+        setActivity(activityData.entries ?? []);
+      })
       .catch((err) => setError(err.message))
       .finally(() => setLoading(false));
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user]);
-
-  async function refreshActivity() {
-    const res = await fetch("/api/admin/activity");
-    if (res.ok) {
-      const data = await res.json();
-      setActivity(data.entries ?? []);
-    }
-  }
-
-  async function handleMarkCalled(id: string) {
-    setMarkingId(id);
-    try {
-      const res = await fetch(`/api/admin/notifications/${id}/read`, {
-        method: "POST",
-      });
-      if (res.ok) {
-        setNotifications((prev) =>
-          prev.map((n) =>
-            n.id === id ? { ...n, readAt: new Date().toISOString() } : n
-          )
-        );
-        await refreshActivity();
-      }
-    } finally {
-      setMarkingId(null);
-    }
-  }
-
-  async function handleResolveReport(id: string) {
-    setResolvingId(id);
-    try {
-      const res = await fetch(`/api/admin/reports/${id}/resolve`, {
-        method: "POST",
-      });
-      if (res.ok) {
-        setReports((prev) =>
-          prev.map((r) => (r.id === id ? { ...r, status: "RESOLVED" } : r))
-        );
-        await refreshActivity();
-      }
-    } finally {
-      setResolvingId(null);
-    }
-  }
-
-  async function handleResolveListingReport(id: string) {
-    setResolvingListingId(id);
-    try {
-      const res = await fetch(`/api/admin/listing-reports/${id}/resolve`, {
-        method: "POST",
-      });
-      if (res.ok) {
-        setListingReports((prev) =>
-          prev.map((r) => (r.id === id ? { ...r, status: "RESOLVED" } : r))
-        );
-        await refreshActivity();
-      }
-    } finally {
-      setResolvingListingId(null);
-    }
-  }
-
-  async function handleToggleRestrict(seller: FlaggedSeller) {
-    setRestrictingId(seller.id);
-    try {
-      const res = await fetch(`/api/admin/users/${seller.id}/restrict`, {
-        method: seller.listingRestrictedAt ? "DELETE" : "POST",
-      });
-      const data = await res.json();
-      if (res.ok) {
-        await refreshActivity();
-        setFlaggedSellers((prev) =>
-          prev.map((s) =>
-            s.id === seller.id
-              ? { ...s, listingRestrictedAt: data.listingRestrictedAt }
-              : s
-          )
-        );
-      }
-    } finally {
-      setRestrictingId(null);
-    }
-  }
 
   if (loadingSession || loading) {
     return (
@@ -304,6 +139,25 @@ export default function AdminPage() {
         </div>
       </div>
 
+      <Link
+        href="/admin/tasks"
+        className="mb-10 flex items-center justify-between rounded-lg border bg-white p-4 hover:bg-gray-50"
+      >
+        <div>
+          <p className="font-medium text-gray-900">{t("admin.tasksPageTitle")}</p>
+          <p className="mt-0.5 text-sm text-gray-500">
+            {tasksSummary
+              ? t("admin.tasksCount", { count: tasksSummary.total })
+              : t("common.loading")}
+          </p>
+        </div>
+        {tasksSummary && tasksSummary.total > 0 && (
+          <span className="rounded-full bg-red-100 px-3 py-1 text-sm font-semibold text-red-700">
+            {tasksSummary.total}
+          </span>
+        )}
+      </Link>
+
       <section className="mb-10">
         <h2 className="mb-3 text-lg font-semibold text-gray-900">
           {t("admin.activityTitle")}
@@ -323,243 +177,6 @@ export default function AdminPage() {
                 <p className="mt-0.5 text-xs text-gray-400">
                   {new Date(entry.createdAt).toLocaleString(dateLocale)}
                 </p>
-              </div>
-            ))}
-          </div>
-        )}
-      </section>
-
-      <section className="mb-10">
-        <h2 className="mb-3 text-lg font-semibold text-gray-900">
-          {t("admin.orderReportsTitle")}
-        </h2>
-        {reports.filter((r) => r.status === "OPEN").length === 0 ? (
-          <p className="text-gray-500">{t("admin.noOpenReports")}</p>
-        ) : (
-          <div className="divide-y rounded-lg border bg-white">
-            {reports
-              .filter((r) => r.status === "OPEN")
-              .map((r) => (
-                <div key={r.id} className="p-4">
-                  <div className="flex items-start justify-between gap-4">
-                    <div>
-                      <p className="font-medium text-gray-900">
-                        {r.order.listing.eventName} ·{" "}
-                        {REPORT_REASON_KEYS[r.reason] ? t(REPORT_REASON_KEYS[r.reason]) : r.reason}
-                      </p>
-                      <p className="mt-1 text-sm text-gray-600">
-                        {t("admin.reportedBy", {
-                          name: r.reporter.name,
-                          email: r.reporter.email,
-                          phone: r.reporter.phoneNumber,
-                        })}
-                      </p>
-                      <p className="mt-1 text-sm text-gray-700">{r.message}</p>
-                      <p className="mt-1 text-sm text-gray-600">
-                        {t("admin.buyerLine", {
-                          name: r.order.buyer.name,
-                          email: r.order.buyer.email,
-                          phone: r.order.buyer.phoneNumber,
-                        })}
-                      </p>
-                      <p className="text-sm text-gray-600">
-                        {t("admin.sellerLine", {
-                          name: r.order.listing.seller.name,
-                          email: r.order.listing.seller.email,
-                          phone: r.order.listing.seller.phoneNumber,
-                        })}
-                      </p>
-                      <p className="mt-1 flex gap-3 text-xs">
-                        <Link
-                          href={`/listings/${r.order.listing.id}`}
-                          className="text-indigo-600 underline"
-                        >
-                          {t("admin.viewListing")}
-                        </Link>
-                        <span className="text-gray-400">
-                          {new Date(r.createdAt).toLocaleString(dateLocale)}
-                        </span>
-                      </p>
-                    </div>
-                    <button
-                      onClick={() => handleResolveReport(r.id)}
-                      disabled={resolvingId === r.id}
-                      className="whitespace-nowrap rounded bg-indigo-600 px-3 py-1.5 text-sm text-white hover:bg-indigo-700 disabled:opacity-50"
-                    >
-                      {t("admin.markResolved")}
-                    </button>
-                  </div>
-                </div>
-              ))}
-          </div>
-        )}
-      </section>
-
-      <section className="mb-10">
-        <h2 className="mb-3 text-lg font-semibold text-gray-900">
-          {t("admin.listingReportsTitle")}
-        </h2>
-        {listingReports.filter((r) => r.status === "OPEN").length === 0 ? (
-          <p className="text-gray-500">{t("admin.noOpenListingReports")}</p>
-        ) : (
-          <div className="divide-y rounded-lg border bg-white">
-            {listingReports
-              .filter((r) => r.status === "OPEN")
-              .map((r) => (
-                <div key={r.id} className="p-4">
-                  <div className="flex items-start justify-between gap-4">
-                    <div>
-                      <p className="font-medium text-gray-900">
-                        {r.listing.eventName} — {r.listing.title}
-                      </p>
-                      <p className="mt-1 text-sm text-gray-600">
-                        {t("admin.reportedBy", {
-                          name: r.reporter.name,
-                          email: r.reporter.email,
-                          phone: r.reporter.phoneNumber,
-                        })}
-                      </p>
-                      <p className="mt-1 text-sm text-gray-700">{r.message}</p>
-                      <p className="mt-1 text-sm text-gray-600">
-                        {t("admin.listingPriceLine", {
-                          price: formatCents(r.listing.priceCents),
-                          faceValue: r.listing.faceValueCents
-                            ? formatCents(r.listing.faceValueCents)
-                            : "—",
-                        })}
-                      </p>
-                      <p className="text-sm text-gray-600">
-                        {t("admin.sellerLine", {
-                          name: r.listing.seller.name,
-                          email: r.listing.seller.email,
-                          phone: r.listing.seller.phoneNumber,
-                        })}
-                      </p>
-                      <p className="mt-1 flex gap-3 text-xs">
-                        <Link
-                          href={`/listings/${r.listing.id}`}
-                          className="text-indigo-600 underline"
-                        >
-                          {t("admin.viewListing")}
-                        </Link>
-                        <span className="text-gray-400">
-                          {new Date(r.createdAt).toLocaleString(dateLocale)}
-                        </span>
-                      </p>
-                    </div>
-                    <button
-                      onClick={() => handleResolveListingReport(r.id)}
-                      disabled={resolvingListingId === r.id}
-                      className="whitespace-nowrap rounded bg-indigo-600 px-3 py-1.5 text-sm text-white hover:bg-indigo-700 disabled:opacity-50"
-                    >
-                      {t("admin.markResolved")}
-                    </button>
-                  </div>
-                </div>
-              ))}
-          </div>
-        )}
-      </section>
-
-      <section className="mb-10">
-        <h2 className="mb-3 text-lg font-semibold text-gray-900">
-          {t("admin.flaggedSellersTitle")}
-        </h2>
-        {flaggedSellers.length === 0 ? (
-          <p className="text-gray-500">{t("admin.noFlaggedSellers")}</p>
-        ) : (
-          <div className="divide-y rounded-lg border bg-white">
-            {flaggedSellers.map((s) => (
-              <div key={s.id} className="flex items-start justify-between gap-4 p-4">
-                <div>
-                  <p className="font-medium text-gray-900">
-                    {s.name} — {s.email} — {s.phoneNumber}
-                  </p>
-                  <p className="mt-1 text-sm text-amber-700">
-                    {t("admin.listingReportCount", { count: s.listingReportCount })}
-                  </p>
-                </div>
-                <button
-                  onClick={() => handleToggleRestrict(s)}
-                  disabled={restrictingId === s.id}
-                  className={`whitespace-nowrap rounded px-3 py-1.5 text-sm disabled:opacity-50 ${
-                    s.listingRestrictedAt
-                      ? "bg-gray-100 text-gray-700 hover:bg-gray-200"
-                      : "bg-red-600 text-white hover:bg-red-700"
-                  }`}
-                >
-                  {s.listingRestrictedAt
-                    ? t("adminUsers.unrestrictButton")
-                    : t("adminUsers.restrictButton")}
-                </button>
-              </div>
-            ))}
-          </div>
-        )}
-      </section>
-
-      <section className="mb-10">
-        <h2 className="mb-3 text-lg font-semibold text-gray-900">
-          {t("admin.matchAlertsTitle")}
-        </h2>
-        {notifications.length === 0 ? (
-          <p className="text-gray-500">{t("admin.noMatches")}</p>
-        ) : (
-          <div className="divide-y rounded-lg border bg-white">
-            {notifications.map((n) => (
-              <div key={n.id} className="p-4">
-                <div className="flex items-start justify-between gap-4">
-                  <div>
-                    <p className="font-medium text-gray-900">
-                      {n.eventName} ·{" "}
-                      {new Date(n.eventDate).toLocaleDateString(dateLocale)}
-                    </p>
-                    <p className="mt-1 text-sm text-gray-600">
-                      {t("admin.buyerLine", {
-                        name: n.buyerName,
-                        email: n.buyerEmail,
-                        phone: n.buyerPhone,
-                      })}
-                    </p>
-                    <p className="text-sm text-gray-600">
-                      {t("admin.sellerLine", {
-                        name: n.sellerName,
-                        email: n.sellerEmail,
-                        phone: n.sellerPhone,
-                      })}
-                    </p>
-                    <p className="mt-1 flex gap-3 text-xs">
-                      <Link
-                        href={`/wanted/${n.buyRequestId}`}
-                        className="text-indigo-600 underline"
-                      >
-                        {t("admin.viewRequest")}
-                      </Link>
-                      <Link
-                        href={`/listings/${n.listingId}`}
-                        className="text-indigo-600 underline"
-                      >
-                        {t("admin.viewListing")}
-                      </Link>
-                      <span className="text-gray-400">
-                        {new Date(n.createdAt).toLocaleString(dateLocale)}
-                      </span>
-                    </p>
-                  </div>
-                  {n.readAt ? (
-                    <span className="whitespace-nowrap rounded bg-gray-100 px-2 py-1 text-xs text-gray-500">
-                      {t("admin.called")}
-                    </span>
-                  ) : (
-                    <button
-                      onClick={() => handleMarkCalled(n.id)}
-                      disabled={markingId === n.id}
-                      className="whitespace-nowrap rounded bg-indigo-600 px-3 py-1.5 text-sm text-white hover:bg-indigo-700 disabled:opacity-50"
-                    >
-                      {t("admin.markCalled")}
-                    </button>
-                  )}
-                </div>
               </div>
             ))}
           </div>
