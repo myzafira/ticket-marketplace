@@ -4,6 +4,7 @@ import { useEffect, useState, use } from "react";
 import { formatCents } from "@/lib/format";
 import { useSession } from "@/components/SessionProvider";
 import StarRating from "@/components/StarRating";
+import VerifiedBadge from "@/components/VerifiedBadge";
 import { useTranslation } from "@/lib/i18n/LanguageContext";
 import { translateApiError } from "@/lib/i18n/apiError";
 import type { BuyRequest } from "@/lib/types";
@@ -126,11 +127,22 @@ export default function BuyRequestDetailPage({
           <div>
             <dt className="text-gray-400">{t("wantedDetail.requestedByLabel")}</dt>
             <dd className="text-gray-900">
-              {t("wantedDetail.buyerHandle", { handle: request.buyer.handle })}
-              {request.buyer.rating && (
-                <span className="ml-2">
+              <div className="flex flex-wrap items-center gap-1.5">
+                <span>{t("wantedDetail.buyerHandle", { handle: request.buyer.handle })}</span>
+                {request.buyer.rating && (
                   <StarRating summary={request.buyer.rating} />
-                </span>
+                )}
+                {request.buyer.isVerified && <VerifiedBadge />}
+              </div>
+              {Boolean(request.buyer.purchaseCount) && (
+                <p className="mt-0.5 text-xs text-gray-400">
+                  {t(
+                    request.buyer.purchaseCount === 1
+                      ? "trust.boughtCount"
+                      : "trust.boughtCountPlural",
+                    { count: request.buyer.purchaseCount! }
+                  )}
+                </p>
               )}
             </dd>
           </div>

@@ -8,6 +8,7 @@ import { checkListingFieldsForContactInfo } from "@/lib/moderation";
 import { notifyAdminOfMatch, notifyPartiesOfMatch } from "@/lib/notifications";
 import { imageUrlSchema } from "@/lib/imageUrl";
 import { getRatingSummaries } from "@/lib/ratings";
+import { getSalesCounts } from "@/lib/sellerStats";
 import { findBestMatchingRequest } from "@/lib/matching";
 
 const createListingSchema = z.object({
@@ -85,14 +86,18 @@ export async function GET(request: Request) {
     },
     orderBy: SORT_OPTIONS[sort],
     include: {
-      seller: { select: { id: true, nickname: true } },
+      seller: { select: { id: true, nickname: true, identityVerifiedAt: true } },
       ...(currentUser
         ? { favoritedBy: { where: { userId: currentUser.id }, select: { id: true } } }
         : {}),
     },
   });
 
-  const ratings = await getRatingSummaries(listings.map((l) => l.seller.id));
+  const sellerIds = listings.map((l) => l.seller.id);
+  const [ratings, salesCounts] = await Promise.all([
+    getRatingSummaries(sellerIds),
+    getSalesCounts(sellerIds),
+  ]);
 
   return NextResponse.json({
     listings: listings.map((l) => {
@@ -104,6 +109,8 @@ export async function GET(request: Request) {
         seller: {
           handle: toPublicHandle(l.seller),
           rating: ratings.get(l.seller.id) ?? { average: null, count: 0 },
+          isVerified: Boolean(l.seller.identityVerifiedAt),
+          salesCount: salesCounts.get(l.seller.id) ?? 0,
         },
         isFavorited: Boolean(favoritedBy && favoritedBy.length > 0),
       };

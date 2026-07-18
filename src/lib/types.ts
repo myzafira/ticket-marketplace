@@ -36,6 +36,8 @@ export type Listing = {
     handle: string;
     rating?: RatingSummary;
     recentReviews?: ReviewSummary[];
+    isVerified?: boolean;
+    salesCount?: number;
   };
   order?: {
     id: string;
@@ -78,6 +80,8 @@ export type BuyRequest = {
     handle: string;
     rating?: RatingSummary;
     recentReviews?: ReviewSummary[];
+    isVerified?: boolean;
+    purchaseCount?: number;
   };
   fulfillingListings?: { id: string; priceCents: number }[];
 };

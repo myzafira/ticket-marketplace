@@ -3,6 +3,7 @@ import { db } from "@/lib/db";
 import { getCurrentUser } from "@/lib/auth";
 import { toPublicHandle } from "@/lib/identity";
 import { getRatingSummary, getRecentReviews } from "@/lib/ratings";
+import { getSalesCounts } from "@/lib/sellerStats";
 
 export async function GET(
   _request: Request,
@@ -12,14 +13,16 @@ export async function GET(
   const currentUser = await getCurrentUser();
   const listing = await db.listing.findUnique({
     where: { id },
-    include: { seller: { select: { id: true, nickname: true } } },
+    include: {
+      seller: { select: { id: true, nickname: true, identityVerifiedAt: true } },
+    },
   });
 
   if (!listing) {
     return NextResponse.json({ error: "Listing not found" }, { status: 404 });
   }
 
-  const [rating, recentReviews, favorite] = await Promise.all([
+  const [rating, recentReviews, favorite, salesCounts] = await Promise.all([
     getRatingSummary(listing.seller.id),
     getRecentReviews(listing.seller.id),
     currentUser
@@ -27,6 +30,7 @@ export async function GET(
           where: { userId_listingId: { userId: currentUser.id, listingId: id } },
         })
       : Promise.resolve(null),
+    getSalesCounts([listing.seller.id]),
   ]);
 
   return NextResponse.json({
@@ -35,6 +39,8 @@ export async function GET(
       seller: {
         handle: toPublicHandle(listing.seller),
         rating,
+        isVerified: Boolean(listing.seller.identityVerifiedAt),
+        salesCount: salesCounts.get(listing.seller.id) ?? 0,
         recentReviews: recentReviews.map((r) => ({
           id: r.id,
           rating: r.rating,

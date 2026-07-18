@@ -7,6 +7,7 @@ import { toPublicHandle } from "@/lib/identity";
 import { checkListingFieldsForContactInfo } from "@/lib/moderation";
 import { imageUrlSchema } from "@/lib/imageUrl";
 import { getRatingSummaries } from "@/lib/ratings";
+import { getPurchaseCounts } from "@/lib/sellerStats";
 
 const createBuyRequestSchema = z.object({
   eventName: z.string().min(1).max(150),
@@ -37,10 +38,16 @@ export async function GET(request: Request) {
         : {}),
     },
     orderBy: { createdAt: "desc" },
-    include: { buyer: { select: { id: true, nickname: true } } },
+    include: {
+      buyer: { select: { id: true, nickname: true, identityVerifiedAt: true } },
+    },
   });
 
-  const ratings = await getRatingSummaries(buyRequests.map((r) => r.buyer.id));
+  const buyerIds = buyRequests.map((r) => r.buyer.id);
+  const [ratings, purchaseCounts] = await Promise.all([
+    getRatingSummaries(buyerIds),
+    getPurchaseCounts(buyerIds),
+  ]);
 
   return NextResponse.json({
     buyRequests: buyRequests.map((r) => ({
@@ -48,6 +55,8 @@ export async function GET(request: Request) {
       buyer: {
         handle: toPublicHandle(r.buyer),
         rating: ratings.get(r.buyer.id) ?? { average: null, count: 0 },
+        isVerified: Boolean(r.buyer.identityVerifiedAt),
+        purchaseCount: purchaseCounts.get(r.buyer.id) ?? 0,
       },
     })),
   });

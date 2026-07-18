@@ -3,6 +3,7 @@ import { db } from "@/lib/db";
 import { getCurrentUser } from "@/lib/auth";
 import { toPublicHandle } from "@/lib/identity";
 import { getRatingSummary, getRecentReviews } from "@/lib/ratings";
+import { getPurchaseCounts } from "@/lib/sellerStats";
 
 export async function GET(
   _request: Request,
@@ -11,16 +12,19 @@ export async function GET(
   const { id } = await params;
   const buyRequest = await db.buyRequest.findUnique({
     where: { id },
-    include: { buyer: { select: { id: true, nickname: true } } },
+    include: {
+      buyer: { select: { id: true, nickname: true, identityVerifiedAt: true } },
+    },
   });
 
   if (!buyRequest) {
     return NextResponse.json({ error: "Request not found" }, { status: 404 });
   }
 
-  const [rating, recentReviews] = await Promise.all([
+  const [rating, recentReviews, purchaseCounts] = await Promise.all([
     getRatingSummary(buyRequest.buyer.id),
     getRecentReviews(buyRequest.buyer.id),
+    getPurchaseCounts([buyRequest.buyer.id]),
   ]);
 
   return NextResponse.json({
@@ -29,6 +33,8 @@ export async function GET(
       buyer: {
         handle: toPublicHandle(buyRequest.buyer),
         rating,
+        isVerified: Boolean(buyRequest.buyer.identityVerifiedAt),
+        purchaseCount: purchaseCounts.get(buyRequest.buyer.id) ?? 0,
         recentReviews: recentReviews.map((r) => ({
           id: r.id,
           rating: r.rating,

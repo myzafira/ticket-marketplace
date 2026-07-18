@@ -22,6 +22,10 @@ model User {
   emailVerifyCode      String?
   emailVerifyExpiresAt DateTime?
 
+  // Set by an admin after manually confirming the person's phone/ID —
+  // there's no automated ID/phone verification provider wired up.
+  identityVerifiedAt DateTime?
+
   listings    Listing[]
   orders      Order[]     @relation("BuyerOrders")
   buyRequests BuyRequest[]

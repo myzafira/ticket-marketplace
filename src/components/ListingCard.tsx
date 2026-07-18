@@ -5,6 +5,7 @@ import Link from "next/link";
 import { formatCents } from "@/lib/format";
 import StarRating from "@/components/StarRating";
 import FavoriteButton from "@/components/FavoriteButton";
+import VerifiedBadge from "@/components/VerifiedBadge";
 import { useTranslation } from "@/lib/i18n/LanguageContext";
 import type { Listing } from "@/lib/types";
 
@@ -54,8 +55,19 @@ export default function ListingCard({ listing }: { listing: Listing }) {
               </p>
             )}
             {listing.seller.rating && (
-              <p className="mt-1">
+              <p className="mt-1 flex flex-wrap items-center gap-1.5">
                 <StarRating summary={listing.seller.rating} />
+                {listing.seller.isVerified && <VerifiedBadge />}
+              </p>
+            )}
+            {Boolean(listing.seller.salesCount) && (
+              <p className="mt-1 text-xs text-gray-400">
+                {t(
+                  listing.seller.salesCount === 1
+                    ? "trust.soldCount"
+                    : "trust.soldCountPlural",
+                  { count: listing.seller.salesCount! }
+                )}
               </p>
             )}
           </div>
