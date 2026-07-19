@@ -6,6 +6,7 @@ import Footer from "@/components/Footer";
 import { SessionProvider } from "@/components/SessionProvider";
 import { LanguageProvider } from "@/lib/i18n/LanguageContext";
 import { ToastProvider } from "@/components/ToastContext";
+import AnnouncementBanner from "@/components/AnnouncementBanner";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -37,6 +38,7 @@ export default function RootLayout({
           <SessionProvider>
             <ToastProvider>
               <Navbar />
+              <AnnouncementBanner scope="users" />
               <main className="flex-1">{children}</main>
               <Footer />
             </ToastProvider>
