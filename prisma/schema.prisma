@@ -22,6 +22,11 @@ model User {
   emailVerifyCode      String?
   emailVerifyExpiresAt DateTime?
 
+  // Set when a password reset is requested; cleared once used or replaced
+  // by a newer request.
+  passwordResetCode      String?
+  passwordResetExpiresAt DateTime?
+
   // Set by an admin after manually confirming the person's phone/ID —
   // there's no automated ID/phone verification provider wired up.
   identityVerifiedAt DateTime?
