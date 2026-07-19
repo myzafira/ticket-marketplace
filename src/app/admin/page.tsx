@@ -42,6 +42,9 @@ const ACTIVITY_ACTION_KEYS: Record<string, string> = {
   LISTING_REPORT_RESOLVED: "admin.activityListingReportResolved",
   MATCH_MARKED_CALLED: "admin.activityMatchCalled",
   SETTINGS_UPDATED: "admin.activitySettingsUpdated",
+  ANNOUNCEMENT_CREATED: "admin.activityAnnouncementCreated",
+  ANNOUNCEMENT_UPDATED: "admin.activityAnnouncementUpdated",
+  ANNOUNCEMENT_DELETED: "admin.activityAnnouncementDeleted",
 };
 
 type AdminActivityEntry = {
@@ -132,6 +135,9 @@ export default function AdminPage() {
         <div className="flex gap-4">
           <Link href="/admin/users" className="text-sm text-indigo-600 underline">
             {t("adminUsers.title")}
+          </Link>
+          <Link href="/admin/announcements" className="text-sm text-indigo-600 underline">
+            {t("adminAnnouncements.title")}
           </Link>
           <Link href="/admin/settings" className="text-sm text-indigo-600 underline">
             {t("admin.settings")}

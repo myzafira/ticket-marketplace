@@ -326,6 +326,9 @@ enum AdminActionType {
   LISTING_REPORT_RESOLVED
   MATCH_MARKED_CALLED
   SETTINGS_UPDATED
+  ANNOUNCEMENT_CREATED
+  ANNOUNCEMENT_UPDATED
+  ANNOUNCEMENT_DELETED
 }
 
 // Audit trail of admin actions — with multiple admins sharing the same
@@ -343,6 +346,38 @@ model AdminActionLog {
   adminId String
 
   createdAt DateTime @default(now())
+}
+
+enum AnnouncementPriority {
+  CRITICAL
+  GENERAL
+}
+
+enum AnnouncementAudience {
+  USERS
+  ADMINS
+}
+
+// Admin-authored news/banners. Not capped at the database level — the admin
+// management page can hold any number for history/editing — display always
+// queries for the single latest active CRITICAL and the 5 latest active
+// GENERAL announcements per audience, so the "max 1 / max 5" rule lives in
+// the read query rather than blocking creation.
+model Announcement {
+  id        String               @id @default(cuid())
+  title     String
+  body      String
+  linkUrl   String?
+  linkLabel String?
+  priority  AnnouncementPriority
+  audience  AnnouncementAudience
+  isActive  Boolean              @default(true)
+  publishAt DateTime             @default(now())
+  expiresAt DateTime?
+  createdAt DateTime             @default(now())
+  updatedAt DateTime             @updatedAt
+
+  @@index([audience, priority, isActive, publishAt])
 }
 
 model PlatformSettings {
