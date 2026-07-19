@@ -12,6 +12,53 @@
   --font-mono: var(--font-geist-mono);
 }
 
+/* "Dreamy Minimalist" palette — overrides the gray/indigo/amber scales that
+   the app already uses everywhere (backgrounds, text, primary buttons/links,
+   warm accents), so every page reskins from this one place instead of
+   touching each component. Red/green/blue are left as-is: they carry
+   functional meaning (errors, success, verified badges) where legibility
+   matters more than brand color. */
+@theme {
+  /* Background & text — warm greige fading into dark mulberry instead of
+     neutral black/gray. */
+  --color-gray-50: #ebebe7;
+  --color-gray-100: #e1e0d9;
+  --color-gray-200: #d2cfc5;
+  --color-gray-300: #beb9ac;
+  --color-gray-400: #a59d8d;
+  --color-gray-500: #8f8079;
+  --color-gray-600: #786a76;
+  --color-gray-700: #6c5670;
+  --color-gray-800: #654a6d;
+  --color-gray-900: #5d3e6a;
+  --color-gray-950: #402a49;
+
+  /* Primary — muted lavender, used for CTA buttons and links. */
+  --color-indigo-50: #f5f2fa;
+  --color-indigo-100: #eae3f3;
+  --color-indigo-200: #d6c8e7;
+  --color-indigo-300: #c2aedb;
+  --color-indigo-400: #b0a2ca;
+  --color-indigo-500: #9584b5;
+  --color-indigo-600: #7a6aa0;
+  --color-indigo-700: #63558a;
+  --color-indigo-800: #4f4470;
+  --color-indigo-900: #3d3557;
+  --color-indigo-950: #29233c;
+
+  /* Secondary — butter/apricot, used for warm accents and badges. */
+  --color-amber-50: #fbf5e9;
+  --color-amber-100: #f5ead1;
+  --color-amber-200: #eddbaf;
+  --color-amber-300: #e7d09c;
+  --color-amber-400: #e2c78e;
+  --color-amber-500: #d4af63;
+  --color-amber-600: #be9548;
+  --color-amber-700: #967640;
+  --color-amber-800: #785e34;
+  --color-amber-900: #5f4a2a;
+}
+
 @media (prefers-color-scheme: dark) {
   :root {
     --background: #0a0a0a;
@@ -28,11 +75,11 @@ body {
 .input {
   width: 100%;
   border-radius: 0.5rem;
-  border: 1px solid #d1d5db;
+  border: 1px solid #beb9ac;
   padding: 0.5rem 0.75rem;
   outline: none;
 }
 
 .input:focus {
-  border-color: #6366f1;
+  border-color: #7a6aa0;
 }
