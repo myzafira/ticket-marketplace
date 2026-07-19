@@ -33,30 +33,30 @@
   --color-gray-900: #5d3e6a;
   --color-gray-950: #402a49;
 
-  /* Primary — muted lavender, used for CTA buttons and links. */
-  --color-indigo-50: #f5f2fa;
-  --color-indigo-100: #eae3f3;
-  --color-indigo-200: #d6c8e7;
-  --color-indigo-300: #c2aedb;
-  --color-indigo-400: #b0a2ca;
-  --color-indigo-500: #9584b5;
-  --color-indigo-600: #7a6aa0;
-  --color-indigo-700: #63558a;
-  --color-indigo-800: #4f4470;
-  --color-indigo-900: #3d3557;
-  --color-indigo-950: #29233c;
+  /* Primary — blush pink, used for CTA buttons and links. */
+  --color-indigo-50: #fcf2f2;
+  --color-indigo-100: #f7e2e3;
+  --color-indigo-200: #efc7ca;
+  --color-indigo-300: #e4a7ac;
+  --color-indigo-400: #d88990;
+  --color-indigo-500: #c56e76;
+  --color-indigo-600: #a8555e;
+  --color-indigo-700: #874249;
+  --color-indigo-800: #6b343a;
+  --color-indigo-900: #54282d;
+  --color-indigo-950: #391a1e;
 
-  /* Secondary — butter/apricot, used for warm accents and badges. */
-  --color-amber-50: #fbf5e9;
-  --color-amber-100: #f5ead1;
-  --color-amber-200: #eddbaf;
-  --color-amber-300: #e7d09c;
-  --color-amber-400: #e2c78e;
-  --color-amber-500: #d4af63;
-  --color-amber-600: #be9548;
-  --color-amber-700: #967640;
-  --color-amber-800: #785e34;
-  --color-amber-900: #5f4a2a;
+  /* Secondary — pale apricot, used for warm accents and badges. */
+  --color-amber-50: #fdf4ee;
+  --color-amber-100: #fbe7da;
+  --color-amber-200: #f6d2b8;
+  --color-amber-300: #f0bc95;
+  --color-amber-400: #e8a876;
+  --color-amber-500: #da9057;
+  --color-amber-600: #c2793f;
+  --color-amber-700: #9c5f32;
+  --color-amber-800: #7c4c29;
+  --color-amber-900: #623d21;
 }
 
 @media (prefers-color-scheme: dark) {
@@ -81,5 +81,5 @@ body {
 }
 
 .input:focus {
-  border-color: #7a6aa0;
+  border-color: #a8555e;
 }
