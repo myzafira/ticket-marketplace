@@ -31,3 +31,15 @@ export async function sendVerificationEmail(to: string, code: string) {
     `,
   });
 }
+
+export async function sendPasswordResetEmail(to: string, code: string) {
+  return sendEmail({
+    to,
+    subject: "Reset your TicketRight password",
+    html: `
+      <p>Your password reset code is:</p>
+      <p style="font-size: 28px; font-weight: bold; letter-spacing: 4px;">${code}</p>
+      <p>This code expires in 15 minutes. If you didn't request this, you can ignore this email — your password won't be changed.</p>
+    `,
+  });
+}
