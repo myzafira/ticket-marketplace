@@ -4,6 +4,7 @@ import { getCurrentUser } from "@/lib/auth";
 import { toPublicHandle } from "@/lib/identity";
 import { getRatingSummary, getRecentReviews } from "@/lib/ratings";
 import { getSalesCounts } from "@/lib/sellerStats";
+import { canAccessListing } from "@/lib/vipAccess";
 
 export async function GET(
   _request: Request,
@@ -18,7 +19,7 @@ export async function GET(
     },
   });
 
-  if (!listing) {
+  if (!listing || !canAccessListing(listing, currentUser)) {
     return NextResponse.json({ error: "Listing not found" }, { status: 404 });
   }
 

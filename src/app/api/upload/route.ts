@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { randomUUID } from "crypto";
 import { put } from "@vercel/blob";
 import { getCurrentUser } from "@/lib/auth";
+import { decodeQrCode } from "@/lib/qrDecode";
 
 const MAX_SIZE_BYTES = 5 * 1024 * 1024; // 5MB
 
@@ -85,10 +86,12 @@ export async function POST(request: Request) {
   }
 
   const filename = `${randomUUID()}.${sniffed.extension}`;
-  const blob = await put(filename, file, {
-    access: "public",
-    contentType: sniffed.contentType,
-  });
+  const [blob, code] = await Promise.all([
+    put(filename, file, { access: "public", contentType: sniffed.contentType }),
+    // Only decode when the caller says it's a ticket photo — decoding is
+    // wasted work for ordinary listing photos, which never have a code.
+    formData.get("decode") === "true" ? decodeQrCode(bytes) : Promise.resolve(null),
+  ]);
 
-  return NextResponse.json({ url: blob.url }, { status: 201 });
+  return NextResponse.json({ url: blob.url, code }, { status: 201 });
 }

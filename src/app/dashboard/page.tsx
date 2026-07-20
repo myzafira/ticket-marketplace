@@ -193,6 +193,13 @@ export default function DashboardPage() {
                           })}
                         </span>
                       )}
+                      {listing.order.vipFeeDiscountPercent > 0 && (
+                        <span className="ml-1 text-green-600">
+                          {t("dashboard.vipDiscountApplied", {
+                            percent: listing.order.vipFeeDiscountPercent,
+                          })}
+                        </span>
+                      )}
                       {listing.order.pointsRedeemedBySeller > 0 && (
                         <span className="ml-1 text-amber-600">
                           {t("dashboard.pointsRedeemed", {
@@ -206,11 +213,15 @@ export default function DashboardPage() {
                     <TicketProofUploader
                       orderId={listing.order.id}
                       imageUrl={listing.order.ticketProofUrl}
-                      onUploaded={(url) =>
+                      ticketProofCode={listing.order.ticketProofCode}
+                      onUploaded={(url, code) =>
                         setListings((prev) =>
                           prev.map((l) =>
                             l.id === listing.id && l.order
-                              ? { ...l, order: { ...l.order, ticketProofUrl: url } }
+                              ? {
+                                  ...l,
+                                  order: { ...l.order, ticketProofUrl: url, ticketProofCode: code },
+                                }
                               : l
                           )
                         )
@@ -322,6 +333,11 @@ export default function DashboardPage() {
                     ) : (
                       <span className="text-gray-400">
                         {t("dashboard.waitingForTicket")}
+                      </span>
+                    )}
+                    {order.ticketProofCode && (
+                      <span className="ml-2 text-gray-500">
+                        {t("dashboard.ticketCode", { code: order.ticketProofCode })}
                       </span>
                     )}
                   </p>

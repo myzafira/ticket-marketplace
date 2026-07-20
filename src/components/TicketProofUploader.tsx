@@ -7,11 +7,13 @@ import { translateApiError } from "@/lib/i18n/apiError";
 export default function TicketProofUploader({
   orderId,
   imageUrl,
+  ticketProofCode,
   onUploaded,
 }: {
   orderId: string;
   imageUrl: string | null;
-  onUploaded: (url: string) => void;
+  ticketProofCode?: string | null;
+  onUploaded: (url: string, code: string | null) => void;
 }) {
   const { t } = useTranslation();
   const [uploading, setUploading] = useState(false);
@@ -27,6 +29,9 @@ export default function TicketProofUploader({
     try {
       const formData = new FormData();
       formData.append("image", file);
+      // Auto-decode any QR/barcode in the photo — a ticket proof, unlike a
+      // listing photo, is worth the decode attempt.
+      formData.append("decode", "true");
       const uploadRes = await fetch("/api/upload", { method: "POST", body: formData });
       const uploadData = await uploadRes.json();
       if (!uploadRes.ok)
@@ -37,14 +42,14 @@ export default function TicketProofUploader({
       const patchRes = await fetch(`/api/orders/${orderId}/ticket-proof`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ imageUrl: uploadData.url }),
+        body: JSON.stringify({ imageUrl: uploadData.url, code: uploadData.code ?? null }),
       });
       const patchData = await patchRes.json();
       if (!patchRes.ok)
         throw new Error(
           translateApiError(t, patchData.error, t("ticketProofUploader.failedToSave"))
         );
-      onUploaded(patchData.ticketProofUrl);
+      onUploaded(patchData.ticketProofUrl, patchData.ticketProofCode ?? null);
     } catch (err) {
       setError(err instanceof Error ? err.message : t("common.somethingWentWrong"));
     } finally {
@@ -73,6 +78,11 @@ export default function TicketProofUploader({
             className="hidden"
           />
         </label>
+        {ticketProofCode && (
+          <span className="text-gray-500">
+            {t("ticketProofUploader.code", { code: ticketProofCode })}
+          </span>
+        )}
         {error && <span className="text-red-600">{error}</span>}
       </div>
     );

@@ -6,6 +6,7 @@ import { requiredImageUrlSchema } from "@/lib/imageUrl";
 
 const ticketProofSchema = z.object({
   imageUrl: requiredImageUrlSchema,
+  code: z.string().max(500).optional().nullable(),
 });
 
 export async function PATCH(
@@ -49,8 +50,14 @@ export async function PATCH(
 
   const updated = await db.order.update({
     where: { id },
-    data: { ticketProofUrl: parsed.data.imageUrl },
+    data: {
+      ticketProofUrl: parsed.data.imageUrl,
+      ticketProofCode: parsed.data.code ?? null,
+    },
   });
 
-  return NextResponse.json({ ticketProofUrl: updated.ticketProofUrl });
+  return NextResponse.json({
+    ticketProofUrl: updated.ticketProofUrl,
+    ticketProofCode: updated.ticketProofCode,
+  });
 }

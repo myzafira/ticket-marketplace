@@ -34,6 +34,10 @@ export type Listing = {
   fulfillsRequestId: string | null;
   isFavorited?: boolean;
   myReport?: MyReport;
+  // Non-null while this listing is still inside its VIP early-access
+  // window — only present in responses to viewers allowed to see it
+  // (the seller, a VIP buyer, or an admin).
+  vipEarlyAccessUntil?: string | null;
   seller: {
     handle: string;
     rating?: RatingSummary;
@@ -47,10 +51,12 @@ export type Listing = {
     platformFeeCents: number;
     sellerPayoutCents: number;
     feeDiscountPercent: number;
+    vipFeeDiscountPercent: number;
     pointsEarnedByBuyer: number;
     pointsEarnedBySeller: number;
     pointsRedeemedBySeller: number;
     ticketProofUrl: string | null;
+    ticketProofCode: string | null;
     buyer: { handle: string };
     myReview?: { rating: number; comment: string | null } | null;
     myReport?: MyReport;
@@ -63,10 +69,12 @@ export type Order = {
   platformFeeCents: number;
   sellerPayoutCents: number;
   feeDiscountPercent: number;
+  vipFeeDiscountPercent: number;
   pointsEarnedByBuyer: number;
   pointsEarnedBySeller: number;
   pointsRedeemedBySeller: number;
   ticketProofUrl: string | null;
+  ticketProofCode: string | null;
   createdAt: string;
   status: "PENDING" | "COMPLETED" | "CANCELLED";
   listing: Listing;

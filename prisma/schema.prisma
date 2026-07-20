@@ -116,6 +116,13 @@ model Listing {
   createdAt   DateTime      @default(now())
   updatedAt   DateTime      @updatedAt
 
+  // VIP perk: for this long after creation, only VIP_USER accounts, admins,
+  // and the seller themselves can see or buy this listing. Computed from
+  // settings.vipEarlyAccessMinutes at creation time (not read live) so a
+  // later settings change doesn't retroactively alter an already-posted
+  // listing's window. Null (or already past) means visible to everyone.
+  vipEarlyAccessUntil DateTime?
+
   seller   User   @relation(fields: [sellerId], references: [id])
   sellerId String
 
@@ -212,10 +219,17 @@ model Order {
   // Photo of the physical/digital ticket (or its QR/barcode) the seller
   // uploads after the sale, so the buyer has proof beyond the chat thread.
   ticketProofUrl     String?
+  // QR/barcode value auto-decoded from ticketProofUrl at upload time (best
+  // effort — null if the image had no readable code). Gives admins a
+  // concrete value to cross-check in a dispute instead of just a photo.
+  ticketProofCode    String?
   // % knocked off the seller's platform fee for being a verified, proven
   // seller at the time of this sale — recorded here (rather than derived
   // later) so the receipt stays accurate even if the seller's status changes.
   feeDiscountPercent Int         @default(0)
+  // % knocked off the platform fee for being a VIP buyer, stacked on top of
+  // feeDiscountPercent — same "lock in at purchase time" reasoning.
+  vipFeeDiscountPercent Int      @default(0)
   // Loyalty points earned by each party on this order, and points the
   // seller spent (1 point = 1 satang) reducing their fee on this sale.
   pointsEarnedByBuyer   Int      @default(0)
@@ -442,6 +456,13 @@ model PlatformSettings {
   // sales get their platform fee cut by this percentage, as a loyalty perk.
   trustedSellerMinSales           Int @default(5)
   trustedSellerFeeDiscountPercent Int @default(20)
+
+  // VIP_USER perks. Fee discount stacks with the trusted-seller discount
+  // above. Early access: a newly created listing is visible only to VIP
+  // buyers (and the seller, and admins) for this many minutes; 0 disables
+  // the perk entirely (visible to everyone immediately).
+  vipFeeDiscountPercent Int @default(10)
+  vipEarlyAccessMinutes Int @default(60)
 
   // % of an order's total that both buyer and seller earn as points
   // (1 point = 1 satang), redeemable against a seller's future platform fee.

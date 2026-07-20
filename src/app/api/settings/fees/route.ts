@@ -13,5 +13,7 @@ export async function GET() {
     maxResaleMarkupPercent: settings.maxResaleMarkupPercent,
     trustedSellerMinSales: settings.trustedSellerMinSales,
     trustedSellerFeeDiscountPercent: settings.trustedSellerFeeDiscountPercent,
+    vipFeeDiscountPercent: settings.vipFeeDiscountPercent,
+    vipEarlyAccessMinutes: settings.vipEarlyAccessMinutes,
   });
 }

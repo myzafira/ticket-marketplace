@@ -75,6 +75,13 @@ export async function GET(request: Request) {
   }
 
   const currentUser = await getCurrentUser();
+  // VIP early-access perk: a listing still inside its window is hidden from
+  // the general browse list for everyone except the seller, VIP buyers, and
+  // admins. Nested under its own AND (rather than a bare OR key) so it
+  // doesn't collide with the text-search OR above.
+  const bypassesEarlyAccess = Boolean(
+    currentUser && (currentUser.role === "VIP_USER" || currentUser.isAdmin)
+  );
 
   const listings = await db.listing.findMany({
     where: {
@@ -91,6 +98,19 @@ export async function GET(request: Request) {
       ...(section ? { section: { contains: section } } : {}),
       ...(Object.keys(priceCents).length > 0 ? { priceCents } : {}),
       ...(Object.keys(eventDate).length > 0 ? { eventDate } : {}),
+      ...(bypassesEarlyAccess
+        ? {}
+        : {
+            AND: [
+              {
+                OR: [
+                  { vipEarlyAccessUntil: null },
+                  { vipEarlyAccessUntil: { lte: now } },
+                  ...(currentUser ? [{ sellerId: currentUser.id }] : []),
+                ],
+              },
+            ],
+          }),
     },
     orderBy: SORT_OPTIONS[sort],
     include: {
@@ -226,6 +246,11 @@ export async function POST(request: Request) {
     });
   }
 
+  const vipEarlyAccessUntil =
+    settings.vipEarlyAccessMinutes > 0
+      ? new Date(Date.now() + settings.vipEarlyAccessMinutes * 60 * 1000)
+      : null;
+
   const listing = await db.listing.create({
     data: {
       title,
@@ -240,6 +265,7 @@ export async function POST(request: Request) {
       imageUrl,
       sellerId: user.id,
       fulfillsRequestId: linkedRequest?.id,
+      vipEarlyAccessUntil,
     },
   });
 

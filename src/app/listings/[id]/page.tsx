@@ -138,6 +138,19 @@ export default function ListingDetailPage({
             }
           />
         </div>
+        {listing.vipEarlyAccessUntil &&
+          new Date(listing.vipEarlyAccessUntil) > new Date() && (
+            <p className="mt-1">
+              <span className="rounded-full bg-amber-100 px-2.5 py-0.5 text-xs font-semibold text-amber-800">
+                {t("listingDetail.vipEarlyAccessBadge", {
+                  time: new Date(listing.vipEarlyAccessUntil).toLocaleTimeString(dateLocale, {
+                    hour: "2-digit",
+                    minute: "2-digit",
+                  }),
+                })}
+              </span>
+            </p>
+          )}
         <p className="mt-1 text-gray-500">{listing.venue}</p>
         <p className="mt-1 text-gray-500">
           {eventDate.toLocaleDateString(dateLocale, {
