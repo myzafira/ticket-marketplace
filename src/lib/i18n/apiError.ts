@@ -22,6 +22,8 @@ const EXACT_MATCH: Record<string, string> = {
     "errors.onlySellerCanUploadTicket",
   "This order is no longer active": "errors.orderNoLongerActive",
   "That code is incorrect or has expired": "errors.codeIncorrectOrExpired",
+  "Too many attempts — request a new code": "errors.tooManyCodeAttempts",
+  "Please wait before requesting another code": "errors.resendCooldown",
   "An account with this email already exists": "errors.emailAlreadyExists",
   "Verify your email before leaving a review": "errors.verifyBeforeReview",
   "Only completed orders can be reviewed": "errors.onlyCompletedOrdersReviewable",

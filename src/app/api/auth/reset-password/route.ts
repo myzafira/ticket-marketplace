@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import bcrypt from "bcryptjs";
 import { z } from "zod";
 import { db } from "@/lib/db";
-import { isCodeValid } from "@/lib/verification";
+import { isCodeValid, MAX_CODE_ATTEMPTS } from "@/lib/verification";
 
 const schema = z.object({
   email: z.string().email(),
@@ -24,10 +24,28 @@ export async function POST(request: Request) {
 
   const user = await db.user.findUnique({
     where: { email },
-    select: { id: true, passwordResetCode: true, passwordResetExpiresAt: true },
+    select: {
+      id: true,
+      passwordResetCode: true,
+      passwordResetExpiresAt: true,
+      passwordResetAttempts: true,
+    },
   });
 
+  if (user && user.passwordResetAttempts >= MAX_CODE_ATTEMPTS) {
+    return NextResponse.json(
+      { error: "Too many attempts — request a new code" },
+      { status: 429 }
+    );
+  }
+
   if (!user || !isCodeValid(user.passwordResetCode, user.passwordResetExpiresAt, code)) {
+    if (user) {
+      await db.user.update({
+        where: { id: user.id },
+        data: { passwordResetAttempts: { increment: 1 } },
+      });
+    }
     return NextResponse.json(
       { error: "That code is incorrect or has expired" },
       { status: 400 }
@@ -41,6 +59,7 @@ export async function POST(request: Request) {
       passwordHash,
       passwordResetCode: null,
       passwordResetExpiresAt: null,
+      passwordResetAttempts: 0,
     },
   });
 
