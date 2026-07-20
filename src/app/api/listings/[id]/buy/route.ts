@@ -25,7 +25,7 @@ export async function POST(
   const { id } = await params;
   const listing = await db.listing.findUnique({
     where: { id },
-    include: { seller: { select: { identityVerifiedAt: true, pointsBalance: true } } },
+    include: { seller: { select: { identityVerifiedAt: true } } },
   });
 
   if (!listing) {
@@ -76,13 +76,20 @@ export async function POST(
 
       // Both parties earn loyalty points on the sale amount; the seller's
       // existing balance (earned from past orders) then auto-redeems against
-      // this sale's fee, capped so the fee can't go negative.
+      // this sale's fee, capped so the fee can't go negative. Read the
+      // balance fresh inside the transaction (not the pre-transaction
+      // `listing` fetch) so a concurrent purchase of another of this
+      // seller's listings can't redeem against the same stale balance.
+      const sellerForPoints = await tx.user.findUnique({
+        where: { id: listing.sellerId },
+        select: { pointsBalance: true },
+      });
       const pointsEarnedByBuyer = Math.round(
         (totalCents * settings.pointsEarnRatePercent) / 100
       );
       const pointsEarnedBySeller = pointsEarnedByBuyer;
       const pointsRedeemedBySeller = Math.min(
-        listing.seller.pointsBalance,
+        sellerForPoints?.pointsBalance ?? 0,
         feeAfterTrustDiscountCents
       );
       const platformFeeCents = feeAfterTrustDiscountCents - pointsRedeemedBySeller;
@@ -107,11 +114,23 @@ export async function POST(
         where: { id: user.id },
         data: { pointsBalance: { increment: pointsEarnedByBuyer } },
       });
+
+      // Guarded decrement: only succeeds if the balance is still at least
+      // what we're redeeming, so a concurrent sale can't double-spend the
+      // same points. Redemption and this sale's earnings are applied as
+      // two separate writes rather than one combined increment.
+      if (pointsRedeemedBySeller > 0) {
+        const redeemed = await tx.user.updateMany({
+          where: { id: listing.sellerId, pointsBalance: { gte: pointsRedeemedBySeller } },
+          data: { pointsBalance: { decrement: pointsRedeemedBySeller } },
+        });
+        if (redeemed.count === 0) {
+          throw new Error("POINTS_RACE");
+        }
+      }
       await tx.user.update({
         where: { id: listing.sellerId },
-        data: {
-          pointsBalance: { increment: pointsEarnedBySeller - pointsRedeemedBySeller },
-        },
+        data: { pointsBalance: { increment: pointsEarnedBySeller } },
       });
       await tx.pointsTransaction.createMany({
         data: [

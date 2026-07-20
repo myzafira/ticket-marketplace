@@ -30,7 +30,10 @@ export async function POST(request: Request) {
     where: { id: user.id },
     select: { passwordHash: true },
   });
-  const valid = await bcrypt.compare(currentPassword, record!.passwordHash);
+  if (!record) {
+    return NextResponse.json({ error: "Not authenticated" }, { status: 401 });
+  }
+  const valid = await bcrypt.compare(currentPassword, record.passwordHash);
   if (!valid) {
     return NextResponse.json(
       { error: "Current password is incorrect" },
