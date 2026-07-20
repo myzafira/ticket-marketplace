@@ -8,7 +8,7 @@ export async function GET(request: Request) {
   if (!user) {
     return NextResponse.json({ error: "Not authenticated" }, { status: 401 });
   }
-  if (!user.isAdmin) {
+  if (!user.permissions.includes("MANAGE_USERS")) {
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }
 
@@ -31,6 +31,7 @@ export async function GET(request: Request) {
       identityVerifiedAt: true,
       listingRestrictedAt: true,
       createdAt: true,
+      role: true,
     },
     orderBy: { createdAt: "desc" },
     take: 20,

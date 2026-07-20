@@ -2,6 +2,15 @@
 
 import { createContext, useContext, useEffect, useState, useCallback } from "react";
 
+export type UserRole = "FULL_ADMIN" | "EXECUTIVE_ADMIN" | "STAFF" | "VIP_USER" | "GENERAL_USER";
+export type AdminPermission =
+  | "MANAGE_USERS"
+  | "RESOLVE_REPORTS"
+  | "MARK_MATCHES_CALLED"
+  | "MANAGE_ANNOUNCEMENTS"
+  | "MANAGE_SETTINGS"
+  | "VIEW_STATS";
+
 export type SessionUser = {
   id: string;
   name: string;
@@ -11,6 +20,9 @@ export type SessionUser = {
   address: string;
   emailVerified: boolean;
   isAdmin: boolean;
+  isFullAdmin: boolean;
+  role: UserRole;
+  permissions: AdminPermission[];
   listingRestrictedAt: string | null;
   pointsBalance: number;
 } | null;

@@ -105,7 +105,14 @@ export default function AccountPage() {
 
   return (
     <div className="mx-auto max-w-sm px-4 py-12">
-      <h1 className="mb-1 text-2xl font-bold text-gray-900">{t("account.title")}</h1>
+      <div className="mb-1 flex items-center gap-2">
+        <h1 className="text-2xl font-bold text-gray-900">{t("account.title")}</h1>
+        {user.role === "VIP_USER" && (
+          <span className="rounded-full bg-amber-100 px-2.5 py-0.5 text-xs font-semibold text-amber-800">
+            {t("account.vipBadge")}
+          </span>
+        )}
+      </div>
       <p className="mb-6 text-sm text-gray-500">
         {t("account.signedInAs", { name: user.name, email: user.email })}
       </p>

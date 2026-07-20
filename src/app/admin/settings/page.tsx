@@ -17,7 +17,6 @@ type Settings = {
   trustedSellerFeeDiscountPercent: number;
   pointsEarnRatePercent: number;
   sellerReportWarningThreshold: number;
-  adminEmails: string;
   lineId: string | null;
   instagramId: string | null;
   phoneNumber: string | null;
@@ -33,7 +32,7 @@ export default function AdminSettingsPage() {
   const [saving, setSaving] = useState(false);
 
   useEffect(() => {
-    if (!user?.isAdmin) {
+    if (!user?.permissions.includes("MANAGE_SETTINGS")) {
       setLoading(false);
       return;
     }
@@ -42,13 +41,7 @@ export default function AdminSettingsPage() {
         const data = await res.json();
         if (!res.ok)
           throw new Error(translateApiError(t, data.error, t("adminSettings.failedToLoad")));
-        setSettings({
-          ...data.settings,
-          adminEmails: data.settings.adminEmails
-            .split(",")
-            .filter(Boolean)
-            .join("\n"),
-        });
+        setSettings(data.settings);
       })
       .catch((err) => setError(err.message))
       .finally(() => setLoading(false));
@@ -80,7 +73,6 @@ export default function AdminSettingsPage() {
           trustedSellerFeeDiscountPercent: settings.trustedSellerFeeDiscountPercent,
           pointsEarnRatePercent: settings.pointsEarnRatePercent,
           sellerReportWarningThreshold: settings.sellerReportWarningThreshold,
-          adminEmails: settings.adminEmails,
           lineId: settings.lineId,
           instagramId: settings.instagramId,
           phoneNumber: settings.phoneNumber,
@@ -105,7 +97,7 @@ export default function AdminSettingsPage() {
     );
   }
 
-  if (!user?.isAdmin) {
+  if (!user?.permissions.includes("MANAGE_SETTINGS")) {
     return (
       <div className="mx-auto max-w-2xl px-4 py-8">
         <p className="text-gray-700">{t("adminSettings.ownerOnly")}</p>
@@ -343,24 +335,6 @@ export default function AdminSettingsPage() {
             {t("adminSettings.reportThresholdHint", {
               count: settings.sellerReportWarningThreshold,
             })}
-          </p>
-        </section>
-
-        <section>
-          <h2 className="mb-3 text-lg font-semibold text-gray-900">
-            {t("adminSettings.adminAccessTitle")}
-          </h2>
-          <Field label={t("adminSettings.adminEmailsLabel")}>
-            <textarea
-              required
-              rows={3}
-              value={settings.adminEmails}
-              onChange={(e) => update("adminEmails", e.target.value)}
-              className="input"
-            />
-          </Field>
-          <p className="mt-1 text-xs text-gray-400">
-            {t("adminSettings.adminEmailsHint")}
           </p>
         </section>
 

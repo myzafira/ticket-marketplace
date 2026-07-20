@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { z } from "zod";
 import { db } from "@/lib/db";
 import { getCurrentUser, isFullyVerified } from "@/lib/auth";
-import { getPlatformSettings, parseAdminEmails } from "@/lib/settings";
+import { getAdminEmails } from "@/lib/settings";
 import { sendEmail } from "@/lib/email";
 
 const reportSchema = z.object({
@@ -65,8 +65,7 @@ export async function POST(
     data: { listingId: id, reporterId: user.id, message },
   });
 
-  const settings = await getPlatformSettings();
-  const adminEmails = parseAdminEmails(settings.adminEmails);
+  const adminEmails = await getAdminEmails();
   const html = `<p><strong>${user.name}</strong> flagged listing "${listing.title}" (${listing.eventName}) as unfairly priced.</p>
 <p>Message: ${message}</p>
 <p>Seller: ${listing.seller.name} (${listing.seller.email})</p>`;

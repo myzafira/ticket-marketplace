@@ -32,7 +32,7 @@ export async function GET() {
   if (!user) {
     return NextResponse.json({ error: "Not authenticated" }, { status: 401 });
   }
-  if (!user.isAdmin) {
+  if (!user.permissions.includes("MANAGE_ANNOUNCEMENTS")) {
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }
 
@@ -48,7 +48,7 @@ export async function POST(request: Request) {
   if (!user) {
     return NextResponse.json({ error: "Not authenticated" }, { status: 401 });
   }
-  if (!user.isAdmin) {
+  if (!user.permissions.includes("MANAGE_ANNOUNCEMENTS")) {
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }
 

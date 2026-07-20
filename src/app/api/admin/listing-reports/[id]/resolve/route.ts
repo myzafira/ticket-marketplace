@@ -11,7 +11,7 @@ export async function POST(
   if (!user) {
     return NextResponse.json({ error: "Not authenticated" }, { status: 401 });
   }
-  if (!user.isAdmin) {
+  if (!user.permissions.includes("RESOLVE_REPORTS")) {
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }
 

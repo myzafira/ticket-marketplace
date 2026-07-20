@@ -35,7 +35,7 @@ export async function PATCH(
   if (!user) {
     return NextResponse.json({ error: "Not authenticated" }, { status: 401 });
   }
-  if (!user.isAdmin) {
+  if (!user.permissions.includes("MANAGE_ANNOUNCEMENTS")) {
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }
 
@@ -79,7 +79,7 @@ export async function DELETE(
   if (!user) {
     return NextResponse.json({ error: "Not authenticated" }, { status: 401 });
   }
-  if (!user.isAdmin) {
+  if (!user.permissions.includes("MANAGE_ANNOUNCEMENTS")) {
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }
 

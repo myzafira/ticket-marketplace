@@ -40,6 +40,12 @@ model User {
   // listings — blocks new listings until cleared.
   listingRestrictedAt DateTime?
 
+  // App-usage access tier — separate from marketplace trading perks (fee
+  // discounts, points) which are computed elsewhere. FULL_ADMIN always has
+  // every AdminPermission regardless of the RolePermission table; the other
+  // two admin tiers are only as capable as the table grants them.
+  role UserRole @default(GENERAL_USER)
+
   listings    Listing[]
   orders      Order[]     @relation("BuyerOrders")
   buyRequests BuyRequest[]
@@ -329,6 +335,8 @@ enum AdminActionType {
   ANNOUNCEMENT_CREATED
   ANNOUNCEMENT_UPDATED
   ANNOUNCEMENT_DELETED
+  USER_ROLE_CHANGED
+  PERMISSIONS_UPDATED
 }
 
 // Audit trail of admin actions — with multiple admins sharing the same
@@ -380,6 +388,36 @@ model Announcement {
   @@index([audience, priority, isActive, publishAt])
 }
 
+enum UserRole {
+  FULL_ADMIN
+  EXECUTIVE_ADMIN
+  STAFF
+  VIP_USER
+  GENERAL_USER
+}
+
+enum AdminPermission {
+  MANAGE_USERS
+  RESOLVE_REPORTS
+  MARK_MATCHES_CALLED
+  MANAGE_ANNOUNCEMENTS
+  MANAGE_SETTINGS
+  VIEW_STATS
+}
+
+// Configurable capability grants for EXECUTIVE_ADMIN and STAFF. FULL_ADMIN
+// is intentionally never represented here — it bypasses this table entirely
+// so a misconfigured matrix can never lock out the top tier. Only rows that
+// exist and have granted=true count; a missing row means "not granted".
+model RolePermission {
+  id         String           @id @default(cuid())
+  role       UserRole
+  permission AdminPermission
+  granted    Boolean          @default(false)
+
+  @@unique([role, permission])
+}
+
 model PlatformSettings {
   id String @id @default("singleton")
 
@@ -406,9 +444,6 @@ model PlatformSettings {
   // A seller whose listings have collected this many "unfair price" reports
   // (across any status) gets surfaced to admins as a repeat offender.
   sellerReportWarningThreshold Int @default(3)
-
-  // Comma-separated list of account emails permitted to view /admin.
-  adminEmails String @default("")
 
   // Public contact identities shown to platform users.
   lineId       String?

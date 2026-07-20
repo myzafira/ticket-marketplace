@@ -11,7 +11,7 @@ export async function POST(
   if (!admin) {
     return NextResponse.json({ error: "Not authenticated" }, { status: 401 });
   }
-  if (!admin.isAdmin) {
+  if (!admin.permissions.includes("MANAGE_USERS")) {
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }
 
@@ -33,7 +33,7 @@ export async function DELETE(
   if (!admin) {
     return NextResponse.json({ error: "Not authenticated" }, { status: 401 });
   }
-  if (!admin.isAdmin) {
+  if (!admin.permissions.includes("MANAGE_USERS")) {
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }
 

@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { z } from "zod";
 import { db } from "@/lib/db";
 import { getCurrentUser, isFullyVerified } from "@/lib/auth";
-import { getPlatformSettings, parseAdminEmails } from "@/lib/settings";
+import { getAdminEmails } from "@/lib/settings";
 import { sendEmail } from "@/lib/email";
 
 const REASON_LABELS: Record<string, string> = {
@@ -81,8 +81,7 @@ export async function POST(
     data: { orderId: id, reporterId: user.id, reason, message },
   });
 
-  const settings = await getPlatformSettings();
-  const adminEmails = parseAdminEmails(settings.adminEmails);
+  const adminEmails = await getAdminEmails();
   const role = order.buyerId === user.id ? "buyer" : "seller";
   const html = `<p><strong>${user.name}</strong> (${role}) reported order ${order.id} for "${order.listing.eventName}".</p>
 <p>Reason: ${REASON_LABELS[reason]}</p>

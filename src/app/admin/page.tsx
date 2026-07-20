@@ -45,6 +45,8 @@ const ACTIVITY_ACTION_KEYS: Record<string, string> = {
   ANNOUNCEMENT_CREATED: "admin.activityAnnouncementCreated",
   ANNOUNCEMENT_UPDATED: "admin.activityAnnouncementUpdated",
   ANNOUNCEMENT_DELETED: "admin.activityAnnouncementDeleted",
+  USER_ROLE_CHANGED: "admin.activityUserRoleChanged",
+  PERMISSIONS_UPDATED: "admin.activityPermissionsUpdated",
 };
 
 type AdminActivityEntry = {
@@ -71,12 +73,14 @@ export default function AdminPage() {
       return;
     }
     Promise.all([
-      fetch("/api/admin/stats").then(async (res) => {
-        const data = await res.json();
-        if (!res.ok)
-          throw new Error(translateApiError(t, data.error, t("admin.failedToLoadStats")));
-        return data;
-      }),
+      user.permissions.includes("VIEW_STATS")
+        ? fetch("/api/admin/stats").then(async (res) => {
+            const data = await res.json();
+            if (!res.ok)
+              throw new Error(translateApiError(t, data.error, t("admin.failedToLoadStats")));
+            return data;
+          })
+        : Promise.resolve(null),
       fetch("/api/admin/tasks/summary").then((res) => res.json()),
       fetch("/api/admin/activity").then((res) => res.json()),
     ])
@@ -120,12 +124,8 @@ export default function AdminPage() {
     );
   }
 
-  if (error || !stats) {
-    return (
-      <p className="mx-auto max-w-5xl px-4 py-8 text-red-600">
-        {error ?? t("admin.failedToLoadStats")}
-      </p>
-    );
+  if (error) {
+    return <p className="mx-auto max-w-5xl px-4 py-8 text-red-600">{error}</p>;
   }
 
   return (
@@ -133,15 +133,26 @@ export default function AdminPage() {
       <div className="mb-6 flex items-center justify-between">
         <h1 className="text-2xl font-bold text-gray-900">{t("admin.platformRevenue")}</h1>
         <div className="flex gap-4">
-          <Link href="/admin/users" className="text-sm text-indigo-600 underline">
-            {t("adminUsers.title")}
-          </Link>
-          <Link href="/admin/announcements" className="text-sm text-indigo-600 underline">
-            {t("adminAnnouncements.title")}
-          </Link>
-          <Link href="/admin/settings" className="text-sm text-indigo-600 underline">
-            {t("admin.settings")}
-          </Link>
+          {user.permissions.includes("MANAGE_USERS") && (
+            <Link href="/admin/users" className="text-sm text-indigo-600 underline">
+              {t("adminUsers.title")}
+            </Link>
+          )}
+          {user.permissions.includes("MANAGE_ANNOUNCEMENTS") && (
+            <Link href="/admin/announcements" className="text-sm text-indigo-600 underline">
+              {t("adminAnnouncements.title")}
+            </Link>
+          )}
+          {user.isFullAdmin && (
+            <Link href="/admin/permissions" className="text-sm text-indigo-600 underline">
+              {t("adminPermissions.title")}
+            </Link>
+          )}
+          {user.permissions.includes("MANAGE_SETTINGS") && (
+            <Link href="/admin/settings" className="text-sm text-indigo-600 underline">
+              {t("admin.settings")}
+            </Link>
+          )}
         </div>
       </div>
 
@@ -189,96 +200,94 @@ export default function AdminPage() {
         )}
       </section>
 
-      <div className="mb-10 grid grid-cols-2 gap-4 sm:grid-cols-4">
-        <StatCard
-          label={t("admin.platformRevenue")}
-          value={formatCents(stats.platformFeeCents)}
-          highlight
-        />
-        <StatCard label={t("admin.grossVolume")} value={formatCents(stats.grossVolumeCents)} />
-        <StatCard label={t("admin.completedOrders")} value={String(stats.totalOrders)} />
-        <StatCard
-          label={t("admin.activeListings")}
-          value={String(stats.activeListingCount)}
-        />
-      </div>
-
-      <section className="mb-10">
-        <h2 className="mb-3 text-lg font-semibold text-gray-900">
-          {t("admin.revenueByTier")}
-        </h2>
-        <div className="divide-y rounded-lg border bg-white">
-          {stats.tierBreakdown.map((tier) => (
-            <div
-              key={tier.label}
-              className="flex items-center justify-between p-4"
-            >
-              <div>
-                <p className="font-medium text-gray-900">{tier.label}</p>
-                <p className="text-sm text-gray-500">
-                  {t(
-                    tier.orderCount === 1 ? "admin.commission" : "admin.commissionPlural",
-                    { rate: (tier.rate * 100).toFixed(1), count: tier.orderCount }
-                  )}
-                </p>
-              </div>
-              <p className="font-semibold text-indigo-600">
-                {formatCents(tier.feeCents)}
-              </p>
-            </div>
-          ))}
-        </div>
-      </section>
-
-      <section>
-        <h2 className="mb-3 text-lg font-semibold text-gray-900">
-          {t("admin.recentOrders")}
-        </h2>
-        {stats.recentOrders.length === 0 ? (
-          <p className="text-gray-500">{t("admin.noCompletedOrders")}</p>
-        ) : (
-          <div className="overflow-x-auto rounded-lg border bg-white">
-            <table className="w-full text-sm">
-              <thead>
-                <tr className="border-b bg-gray-50 text-left text-gray-500">
-                  <th className="p-3 font-medium">{t("admin.colEvent")}</th>
-                  <th className="p-3 font-medium">{t("admin.colSeller")}</th>
-                  <th className="p-3 font-medium">{t("admin.colBuyer")}</th>
-                  <th className="p-3 font-medium">{t("admin.colDate")}</th>
-                  <th className="p-3 text-right font-medium">{t("admin.colTotal")}</th>
-                  <th className="p-3 text-right font-medium">{t("admin.colFee")}</th>
-                  <th className="p-3 text-right font-medium">{t("admin.colPayout")}</th>
-                </tr>
-              </thead>
-              <tbody>
-                {stats.recentOrders.map((order) => (
-                  <tr key={order.id} className="border-b last:border-0">
-                    <td className="p-3 text-gray-900">
-                      {order.listing.eventName}
-                    </td>
-                    <td className="p-3 text-gray-500">
-                      {order.listing.seller.name}
-                    </td>
-                    <td className="p-3 text-gray-500">{order.buyer.name}</td>
-                    <td className="p-3 text-gray-500">
-                      {new Date(order.createdAt).toLocaleDateString(dateLocale)}
-                    </td>
-                    <td className="p-3 text-right text-gray-900">
-                      {formatCents(order.totalCents)}
-                    </td>
-                    <td className="p-3 text-right font-medium text-indigo-600">
-                      {formatCents(order.platformFeeCents)}
-                    </td>
-                    <td className="p-3 text-right text-gray-500">
-                      {formatCents(order.sellerPayoutCents)}
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+      {stats && (
+        <>
+          <div className="mb-10 grid grid-cols-2 gap-4 sm:grid-cols-4">
+            <StatCard
+              label={t("admin.platformRevenue")}
+              value={formatCents(stats.platformFeeCents)}
+              highlight
+            />
+            <StatCard
+              label={t("admin.grossVolume")}
+              value={formatCents(stats.grossVolumeCents)}
+            />
+            <StatCard label={t("admin.completedOrders")} value={String(stats.totalOrders)} />
+            <StatCard
+              label={t("admin.activeListings")}
+              value={String(stats.activeListingCount)}
+            />
           </div>
-        )}
-      </section>
+
+          <section className="mb-10">
+            <h2 className="mb-3 text-lg font-semibold text-gray-900">
+              {t("admin.revenueByTier")}
+            </h2>
+            <div className="divide-y rounded-lg border bg-white">
+              {stats.tierBreakdown.map((tier) => (
+                <div key={tier.label} className="flex items-center justify-between p-4">
+                  <div>
+                    <p className="font-medium text-gray-900">{tier.label}</p>
+                    <p className="text-sm text-gray-500">
+                      {t(
+                        tier.orderCount === 1 ? "admin.commission" : "admin.commissionPlural",
+                        { rate: (tier.rate * 100).toFixed(1), count: tier.orderCount }
+                      )}
+                    </p>
+                  </div>
+                  <p className="font-semibold text-indigo-600">{formatCents(tier.feeCents)}</p>
+                </div>
+              ))}
+            </div>
+          </section>
+
+          <section>
+            <h2 className="mb-3 text-lg font-semibold text-gray-900">
+              {t("admin.recentOrders")}
+            </h2>
+            {stats.recentOrders.length === 0 ? (
+              <p className="text-gray-500">{t("admin.noCompletedOrders")}</p>
+            ) : (
+              <div className="overflow-x-auto rounded-lg border bg-white">
+                <table className="w-full text-sm">
+                  <thead>
+                    <tr className="border-b bg-gray-50 text-left text-gray-500">
+                      <th className="p-3 font-medium">{t("admin.colEvent")}</th>
+                      <th className="p-3 font-medium">{t("admin.colSeller")}</th>
+                      <th className="p-3 font-medium">{t("admin.colBuyer")}</th>
+                      <th className="p-3 font-medium">{t("admin.colDate")}</th>
+                      <th className="p-3 text-right font-medium">{t("admin.colTotal")}</th>
+                      <th className="p-3 text-right font-medium">{t("admin.colFee")}</th>
+                      <th className="p-3 text-right font-medium">{t("admin.colPayout")}</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {stats.recentOrders.map((order) => (
+                      <tr key={order.id} className="border-b last:border-0">
+                        <td className="p-3 text-gray-900">{order.listing.eventName}</td>
+                        <td className="p-3 text-gray-500">{order.listing.seller.name}</td>
+                        <td className="p-3 text-gray-500">{order.buyer.name}</td>
+                        <td className="p-3 text-gray-500">
+                          {new Date(order.createdAt).toLocaleDateString(dateLocale)}
+                        </td>
+                        <td className="p-3 text-right text-gray-900">
+                          {formatCents(order.totalCents)}
+                        </td>
+                        <td className="p-3 text-right font-medium text-indigo-600">
+                          {formatCents(order.platformFeeCents)}
+                        </td>
+                        <td className="p-3 text-right text-gray-500">
+                          {formatCents(order.sellerPayoutCents)}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
+          </section>
+        </>
+      )}
     </div>
   );
 }

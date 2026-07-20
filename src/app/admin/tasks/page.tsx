@@ -256,12 +256,16 @@ export default function AdminTasksPage() {
           <Link href="/admin" className="text-sm text-indigo-600 underline">
             {t("admin.backToOverview")}
           </Link>
-          <Link href="/admin/users" className="text-sm text-indigo-600 underline">
-            {t("adminUsers.title")}
-          </Link>
-          <Link href="/admin/settings" className="text-sm text-indigo-600 underline">
-            {t("admin.settings")}
-          </Link>
+          {user.permissions.includes("MANAGE_USERS") && (
+            <Link href="/admin/users" className="text-sm text-indigo-600 underline">
+              {t("adminUsers.title")}
+            </Link>
+          )}
+          {user.permissions.includes("MANAGE_SETTINGS") && (
+            <Link href="/admin/settings" className="text-sm text-indigo-600 underline">
+              {t("admin.settings")}
+            </Link>
+          )}
         </div>
       </div>
 
@@ -321,13 +325,15 @@ export default function AdminTasksPage() {
                       </span>
                     </p>
                   </div>
-                  <button
-                    onClick={() => handleResolveReport(r.id)}
-                    disabled={resolvingId === r.id}
-                    className="whitespace-nowrap rounded bg-indigo-600 px-3 py-1.5 text-sm text-white hover:bg-indigo-700 disabled:opacity-50"
-                  >
-                    {t("admin.markResolved")}
-                  </button>
+                  {user.permissions.includes("RESOLVE_REPORTS") && (
+                    <button
+                      onClick={() => handleResolveReport(r.id)}
+                      disabled={resolvingId === r.id}
+                      className="whitespace-nowrap rounded bg-indigo-600 px-3 py-1.5 text-sm text-white hover:bg-indigo-700 disabled:opacity-50"
+                    >
+                      {t("admin.markResolved")}
+                    </button>
+                  )}
                 </div>
               </div>
             ))}
@@ -385,13 +391,15 @@ export default function AdminTasksPage() {
                       </span>
                     </p>
                   </div>
-                  <button
-                    onClick={() => handleResolveListingReport(r.id)}
-                    disabled={resolvingListingId === r.id}
-                    className="whitespace-nowrap rounded bg-indigo-600 px-3 py-1.5 text-sm text-white hover:bg-indigo-700 disabled:opacity-50"
-                  >
-                    {t("admin.markResolved")}
-                  </button>
+                  {user.permissions.includes("RESOLVE_REPORTS") && (
+                    <button
+                      onClick={() => handleResolveListingReport(r.id)}
+                      disabled={resolvingListingId === r.id}
+                      className="whitespace-nowrap rounded bg-indigo-600 px-3 py-1.5 text-sm text-white hover:bg-indigo-700 disabled:opacity-50"
+                    >
+                      {t("admin.markResolved")}
+                    </button>
+                  )}
                 </div>
               </div>
             ))}
@@ -417,19 +425,21 @@ export default function AdminTasksPage() {
                     {t("admin.listingReportCount", { count: s.listingReportCount })}
                   </p>
                 </div>
-                <button
-                  onClick={() => handleToggleRestrict(s)}
-                  disabled={restrictingId === s.id}
-                  className={`whitespace-nowrap rounded px-3 py-1.5 text-sm disabled:opacity-50 ${
-                    s.listingRestrictedAt
-                      ? "bg-gray-100 text-gray-700 hover:bg-gray-200"
-                      : "bg-red-600 text-white hover:bg-red-700"
-                  }`}
-                >
-                  {s.listingRestrictedAt
-                    ? t("adminUsers.unrestrictButton")
-                    : t("adminUsers.restrictButton")}
-                </button>
+                {user.permissions.includes("MANAGE_USERS") && (
+                  <button
+                    onClick={() => handleToggleRestrict(s)}
+                    disabled={restrictingId === s.id}
+                    className={`whitespace-nowrap rounded px-3 py-1.5 text-sm disabled:opacity-50 ${
+                      s.listingRestrictedAt
+                        ? "bg-gray-100 text-gray-700 hover:bg-gray-200"
+                        : "bg-red-600 text-white hover:bg-red-700"
+                    }`}
+                  >
+                    {s.listingRestrictedAt
+                      ? t("adminUsers.unrestrictButton")
+                      : t("adminUsers.restrictButton")}
+                  </button>
+                )}
               </div>
             ))}
           </div>
@@ -484,13 +494,15 @@ export default function AdminTasksPage() {
                       </span>
                     </p>
                   </div>
-                  <button
-                    onClick={() => handleMarkCalled(n.id)}
-                    disabled={markingId === n.id}
-                    className="whitespace-nowrap rounded bg-indigo-600 px-3 py-1.5 text-sm text-white hover:bg-indigo-700 disabled:opacity-50"
-                  >
-                    {t("admin.markCalled")}
-                  </button>
+                  {user.permissions.includes("MARK_MATCHES_CALLED") && (
+                    <button
+                      onClick={() => handleMarkCalled(n.id)}
+                      disabled={markingId === n.id}
+                      className="whitespace-nowrap rounded bg-indigo-600 px-3 py-1.5 text-sm text-white hover:bg-indigo-700 disabled:opacity-50"
+                    >
+                      {t("admin.markCalled")}
+                    </button>
+                  )}
                 </div>
               </div>
             ))}

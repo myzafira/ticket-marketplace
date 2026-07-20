@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
 import { getCurrentUser } from "@/lib/auth";
-import { getPlatformSettings, parseAdminEmails } from "@/lib/settings";
+import { getPlatformSettings } from "@/lib/settings";
 import { db } from "@/lib/db";
 import { logAdminAction } from "@/lib/adminLog";
 
@@ -17,7 +17,6 @@ const settingsSchema = z
     trustedSellerFeeDiscountPercent: z.number().int().min(0).max(100),
     pointsEarnRatePercent: z.number().int().min(0).max(100),
     sellerReportWarningThreshold: z.number().int().min(1).max(1000),
-    adminEmails: z.string(),
     lineId: z.string().max(100).optional().nullable(),
     instagramId: z.string().max(100).optional().nullable(),
     phoneNumber: z.string().max(30).optional().nullable(),
@@ -45,7 +44,7 @@ export async function PATCH(request: Request) {
   if (!user) {
     return NextResponse.json({ error: "Not authenticated" }, { status: 401 });
   }
-  if (!user.isAdmin) {
+  if (!user.permissions.includes("MANAGE_SETTINGS")) {
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }
 
@@ -54,29 +53,6 @@ export async function PATCH(request: Request) {
   if (!parsed.success) {
     return NextResponse.json(
       { error: parsed.error.issues[0]?.message ?? "Invalid input" },
-      { status: 400 }
-    );
-  }
-
-  const emails = parseAdminEmails(parsed.data.adminEmails);
-  if (emails.length === 0) {
-    return NextResponse.json(
-      { error: "At least one admin email is required" },
-      { status: 400 }
-    );
-  }
-  const emailSchema = z.string().email();
-  for (const email of emails) {
-    if (!emailSchema.safeParse(email).success) {
-      return NextResponse.json(
-        { error: `"${email}" is not a valid email address` },
-        { status: 400 }
-      );
-    }
-  }
-  if (!emails.includes(user.email.toLowerCase())) {
-    return NextResponse.json(
-      { error: "You cannot remove your own account from the admin list" },
       { status: 400 }
     );
   }
@@ -95,7 +71,6 @@ export async function PATCH(request: Request) {
       trustedSellerFeeDiscountPercent: parsed.data.trustedSellerFeeDiscountPercent,
       pointsEarnRatePercent: parsed.data.pointsEarnRatePercent,
       sellerReportWarningThreshold: parsed.data.sellerReportWarningThreshold,
-      adminEmails: emails.join(","),
       lineId: parsed.data.lineId?.trim() || null,
       instagramId: parsed.data.instagramId?.trim() || null,
       phoneNumber: parsed.data.phoneNumber?.trim() || null,
