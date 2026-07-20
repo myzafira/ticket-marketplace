@@ -21,11 +21,17 @@ model User {
   emailVerified        Boolean   @default(false)
   emailVerifyCode      String?
   emailVerifyExpiresAt DateTime?
+  // Failed-guess counter for emailVerifyCode; reset to 0 whenever a fresh
+  // code is issued, capped at MAX_CODE_ATTEMPTS in lib/verification.ts to
+  // make the 6-digit code resistant to brute-forcing.
+  emailVerifyAttempts  Int       @default(0)
 
   // Set when a password reset is requested; cleared once used or replaced
   // by a newer request.
   passwordResetCode      String?
   passwordResetExpiresAt DateTime?
+  // Same brute-force guard as emailVerifyAttempts, for passwordResetCode.
+  passwordResetAttempts  Int       @default(0)
 
   // Set by an admin after manually confirming the person's phone/ID —
   // there's no automated ID/phone verification provider wired up.
