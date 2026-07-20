@@ -55,7 +55,7 @@ export default function AdminAnnouncementsPage() {
   const [pendingId, setPendingId] = useState<string | null>(null);
 
   useEffect(() => {
-    if (!user?.isAdmin) {
+    if (!user?.permissions.includes("MANAGE_ANNOUNCEMENTS")) {
       setLoading(false);
       return;
     }
@@ -194,7 +194,7 @@ export default function AdminAnnouncementsPage() {
     );
   }
 
-  if (!user?.isAdmin) {
+  if (!user?.permissions.includes("MANAGE_ANNOUNCEMENTS")) {
     return (
       <div className="mx-auto max-w-3xl px-4 py-8">
         <p className="text-gray-700">{t("admin.ownerOnly")}</p>

@@ -268,6 +268,7 @@ const en = {
   },
   account: {
     title: "Account",
+    vipBadge: "VIP",
     signedInAs: "Signed in as {name} ({email})",
     nicknameTitle: "Public nickname",
     nicknameHintPrefix:
@@ -455,6 +456,8 @@ const en = {
     activityAnnouncementCreated: "{admin} created the announcement \"{target}\"",
     activityAnnouncementUpdated: "{admin} updated the announcement \"{target}\"",
     activityAnnouncementDeleted: "{admin} deleted the announcement \"{target}\"",
+    activityUserRoleChanged: "{admin} changed a user's role ({target})",
+    activityPermissionsUpdated: "{admin} updated permissions ({target})",
     orderReportsTitle: "Order reports",
     noOpenReports: "No open reports.",
     listingReportsTitle: "Listing price reports",
@@ -544,6 +547,29 @@ const en = {
     unrestrictButton: "Remove restriction",
     searchFailed: "Search failed — please try again.",
     actionFailed: "That action didn't go through — please try again.",
+    roleFULL_ADMIN: "Full Admin",
+    roleEXECUTIVE_ADMIN: "Executive Admin",
+    roleSTAFF: "Staff",
+    roleVIP_USER: "VIP User",
+    roleGENERAL_USER: "General User",
+  },
+  adminPermissions: {
+    title: "Permissions",
+    subtitle:
+      "Full Admin always has every permission. Configure what Executive Admin and Staff can do below.",
+    fullAdminOnly: "This page is only available to Full Admins.",
+    colPermission: "Permission",
+    roleEXECUTIVE_ADMIN: "Executive Admin",
+    roleSTAFF: "Staff",
+    permMANAGE_USERS: "Manage users (verify identity, restrict sellers, assign VIP)",
+    permRESOLVE_REPORTS: "Resolve order & price reports",
+    permMARK_MATCHES_CALLED: "Mark buy/sell matches as called",
+    permMANAGE_ANNOUNCEMENTS: "Manage announcements",
+    permMANAGE_SETTINGS: "Edit platform settings",
+    permVIEW_STATS: "View revenue & stats dashboard",
+    failedToSave: "Failed to save — please try again.",
+    fullAdminNote:
+      "Assigning roles (including promoting to any admin tier) is Full Admin only and isn't configurable here.",
   },
   adminSettings: {
     title: "Platform settings",
@@ -576,10 +602,6 @@ const en = {
     reportThresholdLabel: "Reports before a seller is flagged",
     reportThresholdHint:
       "A seller whose listings collect {count}+ unfair-price reports (any status) is surfaced on the admin dashboard for review.",
-    adminAccessTitle: "Admin access",
-    adminEmailsLabel: "Admin emails (one per line)",
-    adminEmailsHint:
-      "Accounts with these emails can view /admin. You cannot remove your own account from this list.",
     contactTitle: "Contact identities shown to users",
     lineIdLabel: "LINE ID",
     instagramLabel: "Instagram",
@@ -907,6 +929,7 @@ const th: typeof en = {
   },
   account: {
     title: "บัญชีของฉัน",
+    vipBadge: "VIP",
     signedInAs: "เข้าสู่ระบบในชื่อ {name} ({email})",
     nicknameTitle: "ชื่อที่แสดงต่อสาธารณะ",
     nicknameHintPrefix: "แสดงให้ผู้ซื้อ/ผู้ขายคนอื่นเห็นแทนรหัสสุ่ม เช่น",
@@ -1093,6 +1116,8 @@ const th: typeof en = {
     activityAnnouncementCreated: "{admin} สร้างประกาศ \"{target}\"",
     activityAnnouncementUpdated: "{admin} แก้ไขประกาศ \"{target}\"",
     activityAnnouncementDeleted: "{admin} ลบประกาศ \"{target}\"",
+    activityUserRoleChanged: "{admin} เปลี่ยนสิทธิ์ผู้ใช้ ({target})",
+    activityPermissionsUpdated: "{admin} แก้ไขสิทธิ์การเข้าถึง ({target})",
     orderReportsTitle: "เรื่องแจ้งปัญหา",
     noOpenReports: "ไม่มีเรื่องแจ้งปัญหาที่ค้างอยู่",
     listingReportsTitle: "เรื่องแจ้งราคาไม่เป็นธรรม",
@@ -1182,6 +1207,29 @@ const th: typeof en = {
     unrestrictButton: "ยกเลิกการจำกัดสิทธิ์",
     searchFailed: "ค้นหาไม่สำเร็จ กรุณาลองใหม่อีกครั้ง",
     actionFailed: "การดำเนินการไม่สำเร็จ กรุณาลองใหม่อีกครั้ง",
+    roleFULL_ADMIN: "แอดมินสูงสุด",
+    roleEXECUTIVE_ADMIN: "แอดมินบริหาร",
+    roleSTAFF: "เจ้าหน้าที่",
+    roleVIP_USER: "ผู้ใช้ VIP",
+    roleGENERAL_USER: "ผู้ใช้ทั่วไป",
+  },
+  adminPermissions: {
+    title: "สิทธิ์การเข้าถึง",
+    subtitle:
+      "แอดมินสูงสุดมีสิทธิ์ทุกอย่างเสมอ ตั้งค่าด้านล่างนี้เพื่อกำหนดสิทธิ์ของแอดมินบริหารและเจ้าหน้าที่",
+    fullAdminOnly: "หน้านี้สำหรับแอดมินสูงสุดเท่านั้น",
+    colPermission: "สิทธิ์",
+    roleEXECUTIVE_ADMIN: "แอดมินบริหาร",
+    roleSTAFF: "เจ้าหน้าที่",
+    permMANAGE_USERS: "จัดการผู้ใช้ (ยืนยันตัวตน, จำกัดสิทธิ์ผู้ขาย, ตั้ง VIP)",
+    permRESOLVE_REPORTS: "ปิดเรื่องแจ้งปัญหาคำสั่งซื้อและราคา",
+    permMARK_MATCHES_CALLED: "ทำเครื่องหมายว่าโทรติดต่อคู่จับคู่แล้ว",
+    permMANAGE_ANNOUNCEMENTS: "จัดการประกาศข่าว",
+    permMANAGE_SETTINGS: "แก้ไขการตั้งค่าแพลตฟอร์ม",
+    permVIEW_STATS: "ดูรายได้และสถิติ",
+    failedToSave: "บันทึกไม่สำเร็จ กรุณาลองใหม่อีกครั้ง",
+    fullAdminNote:
+      "การมอบหมาย role (รวมถึงการเลื่อนขั้นเป็นแอดมินระดับใดก็ตาม) ทำได้เฉพาะแอดมินสูงสุด และไม่สามารถตั้งค่าได้ที่นี่",
   },
   adminSettings: {
     title: "ตั้งค่าแพลตฟอร์ม",
@@ -1214,10 +1262,6 @@ const th: typeof en = {
     reportThresholdLabel: "จำนวนครั้งที่ถูกแจ้งก่อนถูก flag",
     reportThresholdHint:
       "ผู้ขายที่มีรายการถูกแจ้งราคาไม่เป็นธรรมตั้งแต่ {count} ครั้งขึ้นไป (ทุกสถานะ) จะถูกแสดงในหน้าแอดมินให้ตรวจสอบ",
-    adminAccessTitle: "สิทธิ์การเข้าถึงแอดมิน",
-    adminEmailsLabel: "อีเมลแอดมิน (บรรทัดละ 1 อีเมล)",
-    adminEmailsHint:
-      "บัญชีที่ใช้อีเมลเหล่านี้จะเข้าหน้า /admin ได้ คุณลบบัญชีตัวเองออกจากรายการนี้ไม่ได้",
     contactTitle: "ข้อมูลติดต่อที่แสดงให้ผู้ใช้เห็น",
     lineIdLabel: "ไอดี LINE",
     instagramLabel: "Instagram",

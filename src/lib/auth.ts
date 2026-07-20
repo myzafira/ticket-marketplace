@@ -1,7 +1,7 @@
 import { cookies } from "next/headers";
 import { SignJWT, jwtVerify } from "jose";
 import { db } from "@/lib/db";
-import { getPlatformSettings, parseAdminEmails } from "@/lib/settings";
+import { getPermissionsForRole, isAdminRole } from "@/lib/permissions";
 
 const SESSION_COOKIE = "session";
 const secret = new TextEncoder().encode(
@@ -51,15 +51,15 @@ export async function getCurrentUser() {
         createdAt: true,
         listingRestrictedAt: true,
         pointsBalance: true,
+        role: true,
       },
     });
     if (!user) return null;
 
-    const settings = await getPlatformSettings();
-    const isAdmin = parseAdminEmails(settings.adminEmails).includes(
-      user.email.toLowerCase()
-    );
-    return { ...user, isAdmin };
+    const isAdmin = isAdminRole(user.role);
+    const isFullAdmin = user.role === "FULL_ADMIN";
+    const permissions = await getPermissionsForRole(user.role);
+    return { ...user, isAdmin, isFullAdmin, permissions };
   } catch {
     return null;
   }

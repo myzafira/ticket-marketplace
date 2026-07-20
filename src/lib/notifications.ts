@@ -1,5 +1,5 @@
 import { db } from "@/lib/db";
-import { getPlatformSettings, parseAdminEmails } from "@/lib/settings";
+import { getAdminEmails } from "@/lib/settings";
 import { sendEmail } from "@/lib/email";
 
 type MatchParticipant = {
@@ -18,8 +18,7 @@ type MatchDetails = {
 };
 
 export async function notifyAdminOfMatch(details: MatchDetails) {
-  const settings = await getPlatformSettings();
-  const adminEmails = parseAdminEmails(settings.adminEmails);
+  const adminEmails = await getAdminEmails();
 
   const message = `${details.buyer.name} wants to buy "${details.eventName}" and ${details.seller.name} just listed a matching ticket. Call the buyer at ${details.buyer.phoneNumber} or the seller at ${details.seller.phoneNumber} to help arrange it.`;
 

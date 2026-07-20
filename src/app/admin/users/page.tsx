@@ -6,6 +6,8 @@ import { useSession } from "@/components/SessionProvider";
 import { useTranslation } from "@/lib/i18n/LanguageContext";
 import { useToast } from "@/components/ToastContext";
 
+type Role = "FULL_ADMIN" | "EXECUTIVE_ADMIN" | "STAFF" | "VIP_USER" | "GENERAL_USER";
+
 type AdminUser = {
   id: string;
   name: string;
@@ -16,7 +18,16 @@ type AdminUser = {
   listingRestrictedAt: string | null;
   listingReportCount: number;
   createdAt: string;
+  role: Role;
 };
+
+const ROLE_OPTIONS: Role[] = [
+  "FULL_ADMIN",
+  "EXECUTIVE_ADMIN",
+  "STAFF",
+  "VIP_USER",
+  "GENERAL_USER",
+];
 
 export default function AdminUsersPage() {
   const { user, loading: loadingSession } = useSession();
@@ -29,6 +40,7 @@ export default function AdminUsersPage() {
   const [loading, setLoading] = useState(false);
   const [pendingId, setPendingId] = useState<string | null>(null);
   const [pendingRestrictId, setPendingRestrictId] = useState<string | null>(null);
+  const [pendingRoleId, setPendingRoleId] = useState<string | null>(null);
 
   async function handleSearch(e: FormEvent) {
     e.preventDefault();
@@ -92,6 +104,27 @@ export default function AdminUsersPage() {
     }
   }
 
+  async function handleRoleChange(target: AdminUser, role: Role) {
+    setPendingRoleId(target.id);
+    try {
+      const res = await fetch(`/api/admin/users/${target.id}/role`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ role }),
+      });
+      const data = await res.json();
+      if (res.ok) {
+        setUsers((prev) =>
+          prev.map((u) => (u.id === target.id ? { ...u, role: data.role } : u))
+        );
+      } else {
+        showToast(data.error ?? t("adminUsers.actionFailed"), "error");
+      }
+    } finally {
+      setPendingRoleId(null);
+    }
+  }
+
   if (loadingSession) {
     return (
       <p className="mx-auto max-w-2xl px-4 py-8 text-gray-500">
@@ -100,7 +133,7 @@ export default function AdminUsersPage() {
     );
   }
 
-  if (!user?.isAdmin) {
+  if (!user?.permissions.includes("MANAGE_USERS")) {
     return (
       <div className="mx-auto max-w-2xl px-4 py-8">
         <p className="text-gray-700">{t("adminUsers.ownerOnly")}</p>
@@ -112,9 +145,16 @@ export default function AdminUsersPage() {
     <div className="mx-auto max-w-2xl px-4 py-8">
       <div className="mb-6 flex items-center justify-between">
         <h1 className="text-2xl font-bold text-gray-900">{t("adminUsers.title")}</h1>
-        <Link href="/admin" className="text-sm text-indigo-600 underline">
-          {t("adminUsers.backToOverview")}
-        </Link>
+        <div className="flex gap-4">
+          {user.isFullAdmin && (
+            <Link href="/admin/permissions" className="text-sm text-indigo-600 underline">
+              {t("adminPermissions.title")}
+            </Link>
+          )}
+          <Link href="/admin" className="text-sm text-indigo-600 underline">
+            {t("adminUsers.backToOverview")}
+          </Link>
+        </div>
       </div>
 
       <form onSubmit={handleSearch} className="mb-6 flex gap-2">
@@ -181,6 +221,24 @@ export default function AdminUsersPage() {
                   </p>
                 </div>
                 <div className="flex shrink-0 flex-col gap-2">
+                  {user.isFullAdmin ? (
+                    <select
+                      value={u.role}
+                      disabled={pendingRoleId === u.id}
+                      onChange={(e) => handleRoleChange(u, e.target.value as Role)}
+                      className="input py-1 text-sm disabled:opacity-50"
+                    >
+                      {ROLE_OPTIONS.map((role) => (
+                        <option key={role} value={role}>
+                          {t(`adminUsers.role${role}`)}
+                        </option>
+                      ))}
+                    </select>
+                  ) : (
+                    <span className="rounded bg-gray-100 px-2 py-1 text-center text-xs text-gray-600">
+                      {t(`adminUsers.role${u.role}`)}
+                    </span>
+                  )}
                   <button
                     onClick={() => handleToggleVerify(u)}
                     disabled={pendingId === u.id}
