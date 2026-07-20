@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, type FormEvent } from "react";
+import { useEffect, useState, type FormEvent } from "react";
 import Link from "next/link";
 import { useSession } from "@/components/SessionProvider";
 import { useTranslation } from "@/lib/i18n/LanguageContext";
@@ -20,6 +20,24 @@ export default function AccountPage() {
   const [nicknameError, setNicknameError] = useState<string | null>(null);
   const [nicknameSuccess, setNicknameSuccess] = useState<string | null>(null);
   const [savingNickname, setSavingNickname] = useState(false);
+
+  const [vipPerks, setVipPerks] = useState<{
+    feeDiscountPercent: number;
+    earlyAccessMinutes: number;
+  } | null>(null);
+
+  useEffect(() => {
+    if (user?.role !== "VIP_USER") return;
+    fetch("/api/settings/fees")
+      .then((res) => res.json())
+      .then((data) =>
+        setVipPerks({
+          feeDiscountPercent: data.vipFeeDiscountPercent,
+          earlyAccessMinutes: data.vipEarlyAccessMinutes,
+        })
+      )
+      .catch(() => {});
+  }, [user?.role]);
 
   async function handleSubmit(e: FormEvent) {
     e.preventDefault();
@@ -113,9 +131,21 @@ export default function AccountPage() {
           </span>
         )}
       </div>
-      <p className="mb-6 text-sm text-gray-500">
+      <p className="mb-1 text-sm text-gray-500">
         {t("account.signedInAs", { name: user.name, email: user.email })}
       </p>
+      {user.role === "VIP_USER" && vipPerks && (
+        <ul className="mb-6 list-disc space-y-0.5 pl-5 text-xs text-amber-700">
+          <li>
+            {t("account.vipPerkFeeDiscount", { percent: vipPerks.feeDiscountPercent })}
+          </li>
+          <li>
+            {t("account.vipPerkEarlyAccess", { minutes: vipPerks.earlyAccessMinutes })}
+          </li>
+          <li>{t("account.vipPerkPriorityMatching")}</li>
+        </ul>
+      )}
+      {user.role !== "VIP_USER" && <div className="mb-6" />}
 
       <h2 className="mb-1 font-semibold text-gray-900">{t("account.nicknameTitle")}</h2>
       <p className="mb-3 text-sm text-gray-500">

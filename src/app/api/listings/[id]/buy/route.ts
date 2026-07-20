@@ -4,6 +4,7 @@ import { getCurrentUser, isFullyVerified } from "@/lib/auth";
 import { buildFeeTiers, calculatePlatformFeeCents } from "@/lib/fees";
 import { getPlatformSettings } from "@/lib/settings";
 import { getSalesCounts } from "@/lib/sellerStats";
+import { canAccessListing } from "@/lib/vipAccess";
 
 // Stub checkout: no real payment processor is wired up yet.
 // This immediately marks the listing sold and records a completed order.
@@ -28,7 +29,7 @@ export async function POST(
     include: { seller: { select: { identityVerifiedAt: true } } },
   });
 
-  if (!listing) {
+  if (!listing || !canAccessListing(listing, user)) {
     return NextResponse.json({ error: "Listing not found" }, { status: 404 });
   }
   if (listing.sellerId === user.id) {
@@ -58,6 +59,11 @@ export async function POST(
     ? settings.trustedSellerFeeDiscountPercent
     : 0;
 
+  // VIP perk: an additional fee discount that stacks (compounds) with the
+  // trusted-seller discount above, also locked in at purchase time.
+  const vipFeeDiscountPercent =
+    user.role === "VIP_USER" ? settings.vipFeeDiscountPercent : 0;
+
   try {
     const order = await db.$transaction(async (tx) => {
       const updated = await tx.listing.updateMany({
@@ -70,8 +76,12 @@ export async function POST(
 
       const totalCents = listing.priceCents * listing.quantity;
       const baseFeeCents = calculatePlatformFeeCents(feeTiers, totalCents);
-      const feeAfterTrustDiscountCents = Math.round(
-        (baseFeeCents * (100 - feeDiscountPercent)) / 100
+      // Trust and VIP discounts compound (like stacked coupons) rather than
+      // summing, so neither can push the combined discount past 100%.
+      const feeAfterDiscountsCents = Math.round(
+        baseFeeCents *
+          ((100 - feeDiscountPercent) / 100) *
+          ((100 - vipFeeDiscountPercent) / 100)
       );
 
       // Both parties earn loyalty points on the sale amount; the seller's
@@ -90,9 +100,9 @@ export async function POST(
       const pointsEarnedBySeller = pointsEarnedByBuyer;
       const pointsRedeemedBySeller = Math.min(
         sellerForPoints?.pointsBalance ?? 0,
-        feeAfterTrustDiscountCents
+        feeAfterDiscountsCents
       );
-      const platformFeeCents = feeAfterTrustDiscountCents - pointsRedeemedBySeller;
+      const platformFeeCents = feeAfterDiscountsCents - pointsRedeemedBySeller;
       const sellerPayoutCents = totalCents - platformFeeCents;
 
       const createdOrder = await tx.order.create({
@@ -103,6 +113,7 @@ export async function POST(
           platformFeeCents,
           sellerPayoutCents,
           feeDiscountPercent,
+          vipFeeDiscountPercent,
           pointsEarnedByBuyer,
           pointsEarnedBySeller,
           pointsRedeemedBySeller,

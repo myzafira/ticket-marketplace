@@ -64,6 +64,7 @@ const en = {
   listingDetail: {
     fulfillsRequest: "Fulfills a ticket request",
     ticketAlt: "Ticket",
+    vipEarlyAccessBadge: "VIP early access — visible to everyone at {time}",
     listingLabel: "Listing",
     sectionLabel: "Section",
     quantityLabel: "Quantity",
@@ -267,6 +268,10 @@ const en = {
     title: "Account",
     vipBadge: "VIP",
     signedInAs: "Signed in as {name} ({email})",
+    vipPerkFeeDiscount: "{percent}% lower platform fee on your purchases",
+    vipPerkEarlyAccess:
+      "Early access to new listings — you see them {minutes} minutes before everyone else",
+    vipPerkPriorityMatching: "Priority matching when a seller lists a ticket you requested",
     nicknameTitle: "Public nickname",
     nicknameHintPrefix:
       "Shown to other buyers/sellers instead of a random code, e.g.",
@@ -318,6 +323,7 @@ const en = {
     matchedFulfills: "Matched — fulfills a ticket request",
     soldForLine: "Sold for {total} · Platform fee {fee} · You received",
     trustDiscountApplied: "(trusted seller discount −{percent}%)",
+    vipDiscountApplied: "(VIP member discount −{percent}%)",
     pointsRedeemed: "(used {value} in points)",
     pointsBalance: "💰 {points} points (≈ {value})",
     rateBuyer: "Rate buyer",
@@ -326,6 +332,7 @@ const en = {
     youRatedSeller: "You rated the seller:",
     viewTicket: "View ticket",
     waitingForTicket: "Waiting for the seller to upload the ticket",
+    ticketCode: "Code: {code}",
     reportProblem: "Report a problem",
     cancelListing: "Cancel",
     each: "each",
@@ -393,11 +400,13 @@ const en = {
     uploading: "Uploading…",
     failedToUpload: "Failed to upload image",
     failedToSave: "Failed to save ticket",
+    code: "Code: {code}",
   },
   imageUpload: {
     remove: "Remove",
     uploading: "Uploading…",
     failedToUpload: "Failed to upload image",
+    countHint: "{count}/{max} photos",
   },
   starRating: {
     noReviewsYet: "No reviews yet",
@@ -586,6 +595,11 @@ const en = {
     trustDiscountPercentLabel: "Fee discount (%)",
     trustDiscountHint:
       "Verified sellers with {sales}+ completed sales get their platform fee cut by {percent}% — a loyalty perk for proven sellers.",
+    vipTitle: "VIP perks",
+    vipFeeDiscountLabel: "Fee discount (%)",
+    vipEarlyAccessLabel: "Early access window (minutes)",
+    vipHint:
+      "VIP buyers get {percent}% off the platform fee (stacks with the trusted-seller discount) and see new listings {minutes} minutes before everyone else. Set the window to 0 to disable early access.",
     pointsTitle: "Loyalty points",
     pointsRateLabel: "Points earn rate (% of order total)",
     pointsRateHint:
@@ -631,6 +645,7 @@ const en = {
     verifyBeforeListing: "Verify your email before listing a ticket",
     listingNotFound: "Listing not found",
     cannotCancelSoldListing: "Cannot cancel a sold listing",
+    tooManyPhotos: "Up to 5 photos allowed",
     currentPasswordIncorrect: "Current password is incorrect",
     sellersUseConversationList: "Sellers should use the conversations list for this listing",
     verifyBeforeMessaging: "Verify your email before messaging a seller",
@@ -718,6 +733,7 @@ const th: typeof en = {
   listingDetail: {
     fulfillsRequest: "ตรงกับคำขอซื้อ",
     ticketAlt: "ตั๋ว",
+    vipEarlyAccessBadge: "สิทธิ์เข้าถึงก่อนใครสำหรับ VIP — คนทั่วไปจะเห็นตอน {time}",
     listingLabel: "รายการ",
     sectionLabel: "โซน",
     quantityLabel: "จำนวน",
@@ -919,6 +935,9 @@ const th: typeof en = {
     title: "บัญชีของฉัน",
     vipBadge: "VIP",
     signedInAs: "เข้าสู่ระบบในชื่อ {name} ({email})",
+    vipPerkFeeDiscount: "ลดค่าธรรมเนียมแพลตฟอร์ม {percent}% ในการซื้อของคุณ",
+    vipPerkEarlyAccess: "เข้าถึงประกาศใหม่ก่อนใคร {minutes} นาทีก่อนคนทั่วไป",
+    vipPerkPriorityMatching: "จับคู่ก่อนใครเมื่อผู้ขายลงตั๋วที่ตรงกับคำขอของคุณ",
     nicknameTitle: "ชื่อที่แสดงต่อสาธารณะ",
     nicknameHintPrefix: "แสดงให้ผู้ซื้อ/ผู้ขายคนอื่นเห็นแทนรหัสสุ่ม เช่น",
     nicknameExample: "TicketFan88-A1",
@@ -969,6 +988,7 @@ const th: typeof en = {
     matchedFulfills: "ตรงกับคำขอซื้อ",
     soldForLine: "ขายได้ {total} · ค่าธรรมเนียมแพลตฟอร์ม {fee} · คุณได้รับ",
     trustDiscountApplied: "(ส่วนลดผู้ขายน่าเชื่อถือ −{percent}%)",
+    vipDiscountApplied: "(ส่วนลดสมาชิก VIP −{percent}%)",
     pointsRedeemed: "(ใช้แต้มหักไป {value})",
     pointsBalance: "💰 {points} แต้ม (≈ {value})",
     rateBuyer: "ให้คะแนนผู้ซื้อ",
@@ -977,6 +997,7 @@ const th: typeof en = {
     youRatedSeller: "คุณให้คะแนนผู้ขายแล้ว:",
     viewTicket: "ดูตั๋ว",
     waitingForTicket: "รอผู้ขายอัปโหลดตั๋ว",
+    ticketCode: "รหัส: {code}",
     reportProblem: "แจ้งปัญหา",
     cancelListing: "ยกเลิก",
     each: "ต่อใบ",
@@ -1044,11 +1065,13 @@ const th: typeof en = {
     uploading: "กำลังอัปโหลด…",
     failedToUpload: "อัปโหลดรูปไม่สำเร็จ",
     failedToSave: "บันทึกตั๋วไม่สำเร็จ",
+    code: "รหัส: {code}",
   },
   imageUpload: {
     remove: "ลบ",
     uploading: "กำลังอัปโหลด…",
     failedToUpload: "อัปโหลดรูปไม่สำเร็จ",
+    countHint: "{count}/{max} รูป",
   },
   starRating: {
     noReviewsYet: "ยังไม่มีรีวิว",
@@ -1237,6 +1260,11 @@ const th: typeof en = {
     trustDiscountPercentLabel: "ส่วนลดค่าธรรมเนียม (%)",
     trustDiscountHint:
       "ผู้ขายที่ยืนยันตัวตนแล้วและขายสำเร็จตั้งแต่ {sales} ครั้งขึ้นไป จะได้ค่าธรรมเนียมลด {percent}% — เป็นสิทธิพิเศษสำหรับผู้ขายที่พิสูจน์ตัวเองแล้ว",
+    vipTitle: "สิทธิพิเศษสมาชิก VIP",
+    vipFeeDiscountLabel: "ส่วนลดค่าธรรมเนียม (%)",
+    vipEarlyAccessLabel: "ระยะเวลาเข้าถึงก่อนใคร (นาที)",
+    vipHint:
+      "สมาชิก VIP จะได้ลดค่าธรรมเนียม {percent}% (รวมกับส่วนลดผู้ขายน่าเชื่อถือได้) และเห็นประกาศใหม่ก่อนคนทั่วไป {minutes} นาที ตั้งค่าเป็น 0 เพื่อปิดสิทธิ์เข้าถึงก่อนใคร",
     pointsTitle: "แต้มสะสม",
     pointsRateLabel: "อัตราการได้แต้ม (% ของยอดคำสั่งซื้อ)",
     pointsRateHint:
@@ -1282,6 +1310,7 @@ const th: typeof en = {
     verifyBeforeListing: "ยืนยันอีเมลก่อนลงขายตั๋ว",
     listingNotFound: "ไม่พบรายการนี้",
     cannotCancelSoldListing: "ยกเลิกรายการที่ขายแล้วไม่ได้",
+    tooManyPhotos: "ใส่ได้สูงสุด 5 รูป",
     currentPasswordIncorrect: "รหัสผ่านปัจจุบันไม่ถูกต้อง",
     sellersUseConversationList: "ผู้ขายควรใช้หน้ารายการบทสนทนาสำหรับรายการนี้",
     verifyBeforeMessaging: "ยืนยันอีเมลก่อนส่งข้อความหาผู้ขาย",

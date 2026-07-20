@@ -15,6 +15,8 @@ type Settings = {
   maxResaleMarkupPercent: number;
   trustedSellerMinSales: number;
   trustedSellerFeeDiscountPercent: number;
+  vipFeeDiscountPercent: number;
+  vipEarlyAccessMinutes: number;
   pointsEarnRatePercent: number;
   sellerReportWarningThreshold: number;
   lineId: string | null;
@@ -71,6 +73,8 @@ export default function AdminSettingsPage() {
           maxResaleMarkupPercent: settings.maxResaleMarkupPercent,
           trustedSellerMinSales: settings.trustedSellerMinSales,
           trustedSellerFeeDiscountPercent: settings.trustedSellerFeeDiscountPercent,
+          vipFeeDiscountPercent: settings.vipFeeDiscountPercent,
+          vipEarlyAccessMinutes: settings.vipEarlyAccessMinutes,
           pointsEarnRatePercent: settings.pointsEarnRatePercent,
           sellerReportWarningThreshold: settings.sellerReportWarningThreshold,
           lineId: settings.lineId,
@@ -284,6 +288,48 @@ export default function AdminSettingsPage() {
             {t("adminSettings.trustDiscountHint", {
               sales: settings.trustedSellerMinSales,
               percent: settings.trustedSellerFeeDiscountPercent,
+            })}
+          </p>
+        </section>
+
+        <section>
+          <h2 className="mb-3 text-lg font-semibold text-gray-900">
+            {t("adminSettings.vipTitle")}
+          </h2>
+          <div className="grid grid-cols-2 gap-4">
+            <Field label={t("adminSettings.vipFeeDiscountLabel")}>
+              <input
+                type="number"
+                min={0}
+                max={100}
+                step={1}
+                required
+                value={settings.vipFeeDiscountPercent}
+                onChange={(e) =>
+                  update("vipFeeDiscountPercent", Number(e.target.value))
+                }
+                className="input"
+              />
+            </Field>
+            <Field label={t("adminSettings.vipEarlyAccessLabel")}>
+              <input
+                type="number"
+                min={0}
+                max={10080}
+                step={1}
+                required
+                value={settings.vipEarlyAccessMinutes}
+                onChange={(e) =>
+                  update("vipEarlyAccessMinutes", Number(e.target.value))
+                }
+                className="input"
+              />
+            </Field>
+          </div>
+          <p className="mt-1 text-xs text-gray-400">
+            {t("adminSettings.vipHint", {
+              percent: settings.vipFeeDiscountPercent,
+              minutes: settings.vipEarlyAccessMinutes,
             })}
           </p>
         </section>

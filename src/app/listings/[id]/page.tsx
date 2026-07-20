@@ -27,6 +27,7 @@ export default function ListingDetailPage({
   const [buying, setBuying] = useState(false);
   const [bought, setBought] = useState(false);
   const [messages, setMessages] = useState<Message[]>([]);
+  const [activeImage, setActiveImage] = useState(0);
 
   useEffect(() => {
     fetch(`/api/listings/${id}`)
@@ -117,13 +118,31 @@ export default function ListingDetailPage({
             {t("listingDetail.fulfillsRequest")}
           </a>
         )}
-        {listing.imageUrl && (
-          // eslint-disable-next-line @next/next/no-img-element
-          <img
-            src={listing.imageUrl}
-            alt={t("listingDetail.ticketAlt")}
-            className="mb-4 max-h-80 w-full rounded-lg border object-contain"
-          />
+        {listing.imageUrls.length > 0 && (
+          <div className="mb-4">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src={listing.imageUrls[Math.min(activeImage, listing.imageUrls.length - 1)]}
+              alt={t("listingDetail.ticketAlt")}
+              className="max-h-80 w-full rounded-lg border object-contain"
+            />
+            {listing.imageUrls.length > 1 && (
+              <div className="mt-2 flex gap-2">
+                {listing.imageUrls.map((url, i) => (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img
+                    key={url}
+                    src={url}
+                    alt=""
+                    onClick={() => setActiveImage(i)}
+                    className={`h-14 w-14 cursor-pointer rounded border object-cover ${
+                      i === activeImage ? "ring-2 ring-indigo-500" : "opacity-70 hover:opacity-100"
+                    }`}
+                  />
+                ))}
+              </div>
+            )}
+          </div>
         )}
         <div className="flex items-start justify-between gap-3">
           <h1 className="text-2xl font-bold text-gray-900">
@@ -138,6 +157,19 @@ export default function ListingDetailPage({
             }
           />
         </div>
+        {listing.vipEarlyAccessUntil &&
+          new Date(listing.vipEarlyAccessUntil) > new Date() && (
+            <p className="mt-1">
+              <span className="rounded-full bg-amber-100 px-2.5 py-0.5 text-xs font-semibold text-amber-800">
+                {t("listingDetail.vipEarlyAccessBadge", {
+                  time: new Date(listing.vipEarlyAccessUntil).toLocaleTimeString(dateLocale, {
+                    hour: "2-digit",
+                    minute: "2-digit",
+                  }),
+                })}
+              </span>
+            </p>
+          )}
         <p className="mt-1 text-gray-500">{listing.venue}</p>
         <p className="mt-1 text-gray-500">
           {eventDate.toLocaleDateString(dateLocale, {

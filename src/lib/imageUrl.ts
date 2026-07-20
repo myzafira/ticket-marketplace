@@ -21,3 +21,11 @@ const uploadedImageUrlSchema = z
 
 export const imageUrlSchema = uploadedImageUrlSchema.optional();
 export const requiredImageUrlSchema = uploadedImageUrlSchema;
+
+// Listings can carry more than one photo (e.g. the ticket itself plus a
+// seat-view shot) — capped to keep payload size and Blob storage cost bounded.
+export const MAX_LISTING_IMAGES = 5;
+export const imageUrlsSchema = z
+  .array(uploadedImageUrlSchema)
+  .max(MAX_LISTING_IMAGES, `Up to ${MAX_LISTING_IMAGES} photos allowed`)
+  .default([]);
