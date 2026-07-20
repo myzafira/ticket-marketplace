@@ -22,30 +22,34 @@ export async function POST(request: Request) {
 
   const { email, code, newPassword } = parsed.data;
 
-  const user = await db.user.findUnique({
-    where: { email },
-    select: {
-      id: true,
-      passwordResetCode: true,
-      passwordResetExpiresAt: true,
-      passwordResetAttempts: true,
-    },
-  });
+  const existing = await db.user.findUnique({ where: { email }, select: { id: true } });
+  if (!existing) {
+    return NextResponse.json(
+      { error: "That code is incorrect or has expired" },
+      { status: 400 }
+    );
+  }
 
-  if (user && user.passwordResetAttempts >= MAX_CODE_ATTEMPTS) {
+  // Same atomic-claim-before-check pattern as verify-email — see the
+  // comment there for why the increment must happen before the code is
+  // compared, not after.
+  const claimed = await db.user.updateMany({
+    where: { id: existing.id, passwordResetAttempts: { lt: MAX_CODE_ATTEMPTS } },
+    data: { passwordResetAttempts: { increment: 1 } },
+  });
+  if (claimed.count === 0) {
     return NextResponse.json(
       { error: "Too many attempts — request a new code" },
       { status: 429 }
     );
   }
 
+  const user = await db.user.findUnique({
+    where: { id: existing.id },
+    select: { id: true, passwordResetCode: true, passwordResetExpiresAt: true },
+  });
+
   if (!user || !isCodeValid(user.passwordResetCode, user.passwordResetExpiresAt, code)) {
-    if (user) {
-      await db.user.update({
-        where: { id: user.id },
-        data: { passwordResetAttempts: { increment: 1 } },
-      });
-    }
     return NextResponse.json(
       { error: "That code is incorrect or has expired" },
       { status: 400 }

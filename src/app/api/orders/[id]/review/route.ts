@@ -3,6 +3,7 @@ import { z } from "zod";
 import { db } from "@/lib/db";
 import { getCurrentUser, isFullyVerified } from "@/lib/auth";
 import { checkListingFieldsForContactInfo } from "@/lib/moderation";
+import { isUniqueConstraintError } from "@/lib/prismaErrors";
 
 const reviewSchema = z.object({
   rating: z.number().int().min(1).max(5),
@@ -77,15 +78,26 @@ export async function POST(
     );
   }
 
-  const review = await db.review.create({
-    data: {
-      orderId: id,
-      reviewerId: user.id,
-      revieweeId,
-      rating,
-      comment,
-    },
-  });
+  let review;
+  try {
+    review = await db.review.create({
+      data: {
+        orderId: id,
+        reviewerId: user.id,
+        revieweeId,
+        rating,
+        comment,
+      },
+    });
+  } catch (err) {
+    if (isUniqueConstraintError(err)) {
+      return NextResponse.json(
+        { error: "You already reviewed this order" },
+        { status: 409 }
+      );
+    }
+    throw err;
+  }
 
   return NextResponse.json({ review }, { status: 201 });
 }

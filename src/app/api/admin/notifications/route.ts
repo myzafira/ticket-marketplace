@@ -7,7 +7,7 @@ export async function GET() {
   if (!user) {
     return NextResponse.json({ error: "Not authenticated" }, { status: 401 });
   }
-  if (!user.isAdmin) {
+  if (!user.permissions.includes("MARK_MATCHES_CALLED")) {
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }
 

@@ -9,6 +9,7 @@ import {
   sendVerificationEmail,
 } from "@/lib/verification";
 import { checkAddressLooksReal } from "@/lib/addressValidation";
+import { isUniqueConstraintError } from "@/lib/prismaErrors";
 
 const signupSchema = z.object({
   name: z.string().min(1, "Name is required").max(100),
@@ -51,18 +52,29 @@ export async function POST(request: Request) {
   const emailVerifyCode = generateVerificationCode();
   const expiresAt = codeExpiry();
 
-  const user = await db.user.create({
-    data: {
-      name,
-      email,
-      passwordHash,
-      phoneNumber,
-      address,
-      emailVerifyCode,
-      emailVerifyExpiresAt: expiresAt,
-    },
-    select: { id: true, name: true, email: true },
-  });
+  let user;
+  try {
+    user = await db.user.create({
+      data: {
+        name,
+        email,
+        passwordHash,
+        phoneNumber,
+        address,
+        emailVerifyCode,
+        emailVerifyExpiresAt: expiresAt,
+      },
+      select: { id: true, name: true, email: true },
+    });
+  } catch (err) {
+    if (isUniqueConstraintError(err)) {
+      return NextResponse.json(
+        { error: "An account with this email already exists" },
+        { status: 409 }
+      );
+    }
+    throw err;
+  }
 
   await createSession(user.id);
   const { sent } = await sendVerificationEmail(email, emailVerifyCode);

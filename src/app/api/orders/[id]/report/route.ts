@@ -4,6 +4,7 @@ import { db } from "@/lib/db";
 import { getCurrentUser, isFullyVerified } from "@/lib/auth";
 import { getAdminEmails } from "@/lib/settings";
 import { sendEmail, escapeHtml } from "@/lib/email";
+import { isUniqueConstraintError } from "@/lib/prismaErrors";
 
 const REASON_LABELS: Record<string, string> = {
   TICKET_NOT_RECEIVED: "Ticket not received",
@@ -77,9 +78,20 @@ export async function POST(
   }
 
   const { reason, message } = parsed.data;
-  const report = await db.orderReport.create({
-    data: { orderId: id, reporterId: user.id, reason, message },
-  });
+  let report;
+  try {
+    report = await db.orderReport.create({
+      data: { orderId: id, reporterId: user.id, reason, message },
+    });
+  } catch (err) {
+    if (isUniqueConstraintError(err)) {
+      return NextResponse.json(
+        { error: "You already have an open report for this order" },
+        { status: 409 }
+      );
+    }
+    throw err;
+  }
 
   const adminEmails = await getAdminEmails();
   const role = order.buyerId === user.id ? "buyer" : "seller";
