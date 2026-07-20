@@ -32,9 +32,6 @@ const EXACT_MATCH: Record<string, string> = {
   "Verify your email before listing a ticket": "errors.verifyBeforeListing",
   "Listing not found": "errors.listingNotFound",
   "Cannot cancel a sold listing": "errors.cannotCancelSoldListing",
-  "At least one admin email is required": "errors.adminEmailRequired",
-  "You cannot remove your own account from the admin list":
-    "errors.cannotRemoveSelfAsAdmin",
   "Current password is incorrect": "errors.currentPasswordIncorrect",
   "Sellers should use the conversations list for this listing":
     "errors.sellersUseConversationList",
@@ -60,8 +57,6 @@ const EXACT_MATCH: Record<string, string> = {
     "errors.listingRestricted",
 };
 
-const QUOTED_EMAIL_RE = /^"(.+)" is not a valid email address$/;
-
 export function translateApiError(
   t: (key: string, vars?: Record<string, string | number>) => string,
   message: string | undefined | null,
@@ -71,9 +66,6 @@ export function translateApiError(
 
   const key = EXACT_MATCH[message];
   if (key) return t(key);
-
-  const emailMatch = message.match(QUOTED_EMAIL_RE);
-  if (emailMatch) return t("errors.invalidAdminEmail", { email: emailMatch[1] });
 
   return message;
 }

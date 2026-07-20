@@ -12,12 +12,12 @@ export async function getAdminEmails(): Promise<string[]> {
 }
 
 export async function getPlatformSettings() {
-  const existing = await db.platformSettings.findUnique({
+  // Upsert instead of find-then-create: two concurrent first-ever calls
+  // racing to create the singleton row would otherwise throw an unhandled
+  // unique-constraint error on the loser.
+  return db.platformSettings.upsert({
     where: { id: "singleton" },
-  });
-  if (existing) return existing;
-
-  return db.platformSettings.create({
-    data: { id: "singleton" },
+    update: {},
+    create: { id: "singleton" },
   });
 }

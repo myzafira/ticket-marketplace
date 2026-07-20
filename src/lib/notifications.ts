@@ -1,6 +1,6 @@
 import { db } from "@/lib/db";
 import { getAdminEmails } from "@/lib/settings";
-import { sendEmail } from "@/lib/email";
+import { sendEmail, escapeHtml } from "@/lib/email";
 
 type MatchParticipant = {
   name: string;
@@ -20,14 +20,18 @@ type MatchDetails = {
 export async function notifyAdminOfMatch(details: MatchDetails) {
   const adminEmails = await getAdminEmails();
 
+  // Plain-text version stored in the DB and shown as JSX text in the admin
+  // UI (which escapes on its own) — the HTML email body below builds its
+  // own escaped copy so raw markup in a name can't inject into the email.
   const message = `${details.buyer.name} wants to buy "${details.eventName}" and ${details.seller.name} just listed a matching ticket. Call the buyer at ${details.buyer.phoneNumber} or the seller at ${details.seller.phoneNumber} to help arrange it.`;
+  const emailHtml = `<p>${escapeHtml(details.buyer.name)} wants to buy "${escapeHtml(details.eventName)}" and ${escapeHtml(details.seller.name)} just listed a matching ticket. Call the buyer at ${escapeHtml(details.buyer.phoneNumber)} or the seller at ${escapeHtml(details.seller.phoneNumber)} to help arrange it.</p>`;
 
   await Promise.all(
     adminEmails.map((to) =>
       sendEmail({
         to,
         subject: "New buy/sell match on TicketRight",
-        html: `<p>${message}</p>`,
+        html: emailHtml,
       })
     )
   );
@@ -54,16 +58,17 @@ export async function notifyAdminOfMatch(details: MatchDetails) {
 // and sellers stay anonymous to each other; only the platform (admin) sees
 // real contact info, via notifyAdminOfMatch above.
 export async function notifyPartiesOfMatch(details: MatchDetails) {
+  const eventName = escapeHtml(details.eventName);
   await Promise.all([
     sendEmail({
       to: details.buyer.email,
       subject: "A ticket matching your request is available",
-      html: `<p>Good news — a seller listed a ticket for "${details.eventName}" that matches your request. Log in to TicketRight and check your dashboard to buy it.</p>`,
+      html: `<p>Good news — a seller listed a ticket for "${eventName}" that matches your request. Log in to TicketRight and check your dashboard to buy it.</p>`,
     }),
     sendEmail({
       to: details.seller.email,
       subject: "Your listing matches a buyer's request",
-      html: `<p>Your listing for "${details.eventName}" matches an open ticket request. It's already linked — no action needed. It'll close automatically once the buyer purchases it.</p>`,
+      html: `<p>Your listing for "${eventName}" matches an open ticket request. It's already linked — no action needed. It'll close automatically once the buyer purchases it.</p>`,
     }),
   ]);
 }

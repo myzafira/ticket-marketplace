@@ -3,7 +3,7 @@ import { z } from "zod";
 import { db } from "@/lib/db";
 import { getCurrentUser, isFullyVerified } from "@/lib/auth";
 import { getAdminEmails } from "@/lib/settings";
-import { sendEmail } from "@/lib/email";
+import { sendEmail, escapeHtml } from "@/lib/email";
 
 const reportSchema = z.object({
   message: z.string().min(1).max(1000),
@@ -66,9 +66,9 @@ export async function POST(
   });
 
   const adminEmails = await getAdminEmails();
-  const html = `<p><strong>${user.name}</strong> flagged listing "${listing.title}" (${listing.eventName}) as unfairly priced.</p>
-<p>Message: ${message}</p>
-<p>Seller: ${listing.seller.name} (${listing.seller.email})</p>`;
+  const html = `<p><strong>${escapeHtml(user.name)}</strong> flagged listing "${escapeHtml(listing.title)}" (${escapeHtml(listing.eventName)}) as unfairly priced.</p>
+<p>Message: ${escapeHtml(message)}</p>
+<p>Seller: ${escapeHtml(listing.seller.name)} (${escapeHtml(listing.seller.email)})</p>`;
 
   await Promise.all(
     adminEmails.map((to) =>

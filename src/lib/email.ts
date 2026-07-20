@@ -9,6 +9,18 @@ function getClient() {
   return client;
 }
 
+// Call sites interpolate user-supplied strings (names, messages, listing
+// titles) directly into HTML email bodies — escape them first so a report
+// message or nickname can't inject markup into an email an admin reads.
+export function escapeHtml(value: string) {
+  return value
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#39;");
+}
+
 export async function sendEmail({
   to,
   subject,
@@ -26,10 +38,17 @@ export async function sendEmail({
     return { sent: false as const };
   }
 
-  const { error } = await resend.emails.send({ from: FROM, to, subject, html });
-  if (error) {
-    console.error(`[email failed] To: ${to} | Subject: ${subject} |`, error);
+  try {
+    const { error } = await resend.emails.send({ from: FROM, to, subject, html });
+    if (error) {
+      console.error(`[email failed] To: ${to} | Subject: ${subject} |`, error);
+      return { sent: false as const };
+    }
+    return { sent: true as const };
+  } catch (err) {
+    // A thrown exception (e.g. network failure) shouldn't 500 a request
+    // whose underlying action (signup, report, listing) already committed.
+    console.error(`[email threw] To: ${to} | Subject: ${subject} |`, err);
     return { sent: false as const };
   }
-  return { sent: true as const };
 }

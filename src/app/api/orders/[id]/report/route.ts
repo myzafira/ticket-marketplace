@@ -3,7 +3,7 @@ import { z } from "zod";
 import { db } from "@/lib/db";
 import { getCurrentUser, isFullyVerified } from "@/lib/auth";
 import { getAdminEmails } from "@/lib/settings";
-import { sendEmail } from "@/lib/email";
+import { sendEmail, escapeHtml } from "@/lib/email";
 
 const REASON_LABELS: Record<string, string> = {
   TICKET_NOT_RECEIVED: "Ticket not received",
@@ -83,11 +83,11 @@ export async function POST(
 
   const adminEmails = await getAdminEmails();
   const role = order.buyerId === user.id ? "buyer" : "seller";
-  const html = `<p><strong>${user.name}</strong> (${role}) reported order ${order.id} for "${order.listing.eventName}".</p>
+  const html = `<p><strong>${escapeHtml(user.name)}</strong> (${role}) reported order ${order.id} for "${escapeHtml(order.listing.eventName)}".</p>
 <p>Reason: ${REASON_LABELS[reason]}</p>
-<p>Message: ${message}</p>
-<p>Buyer: ${order.buyer.name} (${order.buyer.email})<br/>
-Seller: ${order.listing.seller.name} (${order.listing.seller.email})</p>`;
+<p>Message: ${escapeHtml(message)}</p>
+<p>Buyer: ${escapeHtml(order.buyer.name)} (${escapeHtml(order.buyer.email)})<br/>
+Seller: ${escapeHtml(order.listing.seller.name)} (${escapeHtml(order.listing.seller.email)})</p>`;
 
   await Promise.all(
     adminEmails.map((to) =>
