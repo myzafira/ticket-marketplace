@@ -28,10 +28,10 @@ export default function ListingCard({ listing }: { listing: Listing }) {
       </div>
       <div className="flex items-start justify-between gap-3">
         <div className="flex gap-3">
-          {listing.imageUrl && (
+          {listing.imageUrls.length > 0 && (
             // eslint-disable-next-line @next/next/no-img-element
             <img
-              src={listing.imageUrl}
+              src={listing.imageUrls[0]}
               alt=""
               className="h-16 w-16 shrink-0 rounded object-cover"
             />

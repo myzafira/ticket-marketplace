@@ -4,10 +4,11 @@ import { Suspense, useEffect, useState, type FormEvent } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useSession } from "@/components/SessionProvider";
 import { checkListingFieldsForContactInfo } from "@/lib/moderation";
-import ImageUploadField from "@/components/ImageUploadField";
+import MultiImageUploadField from "@/components/MultiImageUploadField";
 import { formatCents, bahtToCents } from "@/lib/format";
 import { useTranslation } from "@/lib/i18n/LanguageContext";
 import { translateApiError } from "@/lib/i18n/apiError";
+import { MAX_LISTING_IMAGES } from "@/lib/imageUrl";
 
 type FeeTierInfo = { label: string; ratePercent: number };
 
@@ -76,7 +77,7 @@ function SellForm() {
     price: "",
     description: "",
   });
-  const [imageUrl, setImageUrl] = useState<string | null>(null);
+  const [imageUrls, setImageUrls] = useState<string[]>([]);
 
   function update<K extends keyof typeof form>(key: K, value: string) {
     setForm((f) => ({ ...f, [key]: value }));
@@ -157,7 +158,7 @@ function SellForm() {
           faceValue: Number(form.faceValue),
           description: form.description || undefined,
           fulfillsRequestId: requestId,
-          imageUrl: imageUrl || undefined,
+          imageUrls,
         }),
       });
       const data = await res.json();
@@ -375,10 +376,11 @@ function SellForm() {
           />
         </Field>
 
-        <ImageUploadField
+        <MultiImageUploadField
           label={t("sell.ticketPhotoOptional")}
-          imageUrl={imageUrl}
-          onChange={setImageUrl}
+          imageUrls={imageUrls}
+          max={MAX_LISTING_IMAGES}
+          onChange={setImageUrls}
         />
         <p className="-mt-2 text-xs text-gray-400">{t("sell.ticketPhotoHint")}</p>
 

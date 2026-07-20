@@ -406,6 +406,7 @@ const en = {
     remove: "Remove",
     uploading: "Uploading…",
     failedToUpload: "Failed to upload image",
+    countHint: "{count}/{max} photos",
   },
   starRating: {
     noReviewsYet: "No reviews yet",
@@ -644,6 +645,7 @@ const en = {
     verifyBeforeListing: "Verify your email before listing a ticket",
     listingNotFound: "Listing not found",
     cannotCancelSoldListing: "Cannot cancel a sold listing",
+    tooManyPhotos: "Up to 5 photos allowed",
     currentPasswordIncorrect: "Current password is incorrect",
     sellersUseConversationList: "Sellers should use the conversations list for this listing",
     verifyBeforeMessaging: "Verify your email before messaging a seller",
@@ -1069,6 +1071,7 @@ const th: typeof en = {
     remove: "ลบ",
     uploading: "กำลังอัปโหลด…",
     failedToUpload: "อัปโหลดรูปไม่สำเร็จ",
+    countHint: "{count}/{max} รูป",
   },
   starRating: {
     noReviewsYet: "ยังไม่มีรีวิว",
@@ -1307,6 +1310,7 @@ const th: typeof en = {
     verifyBeforeListing: "ยืนยันอีเมลก่อนลงขายตั๋ว",
     listingNotFound: "ไม่พบรายการนี้",
     cannotCancelSoldListing: "ยกเลิกรายการที่ขายแล้วไม่ได้",
+    tooManyPhotos: "ใส่ได้สูงสุด 5 รูป",
     currentPasswordIncorrect: "รหัสผ่านปัจจุบันไม่ถูกต้อง",
     sellersUseConversationList: "ผู้ขายควรใช้หน้ารายการบทสนทนาสำหรับรายการนี้",
     verifyBeforeMessaging: "ยืนยันอีเมลก่อนส่งข้อความหาผู้ขาย",

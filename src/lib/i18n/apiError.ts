@@ -34,6 +34,7 @@ const EXACT_MATCH: Record<string, string> = {
   "Verify your email before listing a ticket": "errors.verifyBeforeListing",
   "Listing not found": "errors.listingNotFound",
   "Cannot cancel a sold listing": "errors.cannotCancelSoldListing",
+  "Up to 5 photos allowed": "errors.tooManyPhotos",
   "Current password is incorrect": "errors.currentPasswordIncorrect",
   "Sellers should use the conversations list for this listing":
     "errors.sellersUseConversationList",

@@ -6,7 +6,7 @@ import { bahtToCents } from "@/lib/format";
 import { toPublicHandle } from "@/lib/identity";
 import { checkListingFieldsForContactInfo } from "@/lib/moderation";
 import { notifyAdminOfMatch, notifyPartiesOfMatch } from "@/lib/notifications";
-import { imageUrlSchema } from "@/lib/imageUrl";
+import { imageUrlsSchema } from "@/lib/imageUrl";
 import { getRatingSummaries } from "@/lib/ratings";
 import { getSalesCounts } from "@/lib/sellerStats";
 import { findBestMatchingRequest } from "@/lib/matching";
@@ -25,7 +25,7 @@ const createListingSchema = z.object({
   faceValue: z.number().positive(),
   description: z.string().max(2000).optional(),
   fulfillsRequestId: z.string().optional(),
-  imageUrl: imageUrlSchema,
+  imageUrls: imageUrlsSchema,
 });
 
 const SORT_OPTIONS = {
@@ -187,7 +187,7 @@ export async function POST(request: Request) {
     faceValue,
     description,
     fulfillsRequestId,
-    imageUrl,
+    imageUrls,
   } = parsed.data;
 
   const settings = await getPlatformSettings();
@@ -262,7 +262,7 @@ export async function POST(request: Request) {
       priceCents,
       faceValueCents,
       description,
-      imageUrl,
+      imageUrls,
       sellerId: user.id,
       fulfillsRequestId: linkedRequest?.id,
       vipEarlyAccessUntil,
