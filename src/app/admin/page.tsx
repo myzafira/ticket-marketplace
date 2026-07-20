@@ -82,7 +82,9 @@ export default function AdminPage() {
           })
         : Promise.resolve(null),
       fetch("/api/admin/tasks/summary").then((res) => res.json()),
-      fetch("/api/admin/activity").then((res) => res.json()),
+      user.permissions.includes("VIEW_STATS")
+        ? fetch("/api/admin/activity").then((res) => res.json())
+        : Promise.resolve({ entries: [] }),
     ])
       .then(([statsData, tasksSummaryData, activityData]) => {
         setStats(statsData);
@@ -176,27 +178,31 @@ export default function AdminPage() {
       </Link>
 
       <section className="mb-10">
-        <h2 className="mb-3 text-lg font-semibold text-gray-900">
-          {t("admin.activityTitle")}
-        </h2>
-        {activity.length === 0 ? (
-          <p className="text-gray-500">{t("admin.noActivity")}</p>
-        ) : (
-          <div className="max-h-80 divide-y overflow-y-auto rounded-lg border bg-white">
-            {activity.map((entry) => (
-              <div key={entry.id} className="p-3 text-sm">
-                <p className="text-gray-800">
-                  {t(ACTIVITY_ACTION_KEYS[entry.action] ?? entry.action, {
-                    admin: entry.admin.name,
-                    target: entry.targetLabel ?? "",
-                  })}
-                </p>
-                <p className="mt-0.5 text-xs text-gray-400">
-                  {new Date(entry.createdAt).toLocaleString(dateLocale)}
-                </p>
+        {user.permissions.includes("VIEW_STATS") && (
+          <>
+            <h2 className="mb-3 text-lg font-semibold text-gray-900">
+              {t("admin.activityTitle")}
+            </h2>
+            {activity.length === 0 ? (
+              <p className="text-gray-500">{t("admin.noActivity")}</p>
+            ) : (
+              <div className="max-h-80 divide-y overflow-y-auto rounded-lg border bg-white">
+                {activity.map((entry) => (
+                  <div key={entry.id} className="p-3 text-sm">
+                    <p className="text-gray-800">
+                      {t(ACTIVITY_ACTION_KEYS[entry.action] ?? entry.action, {
+                        admin: entry.admin.name,
+                        target: entry.targetLabel ?? "",
+                      })}
+                    </p>
+                    <p className="mt-0.5 text-xs text-gray-400">
+                      {new Date(entry.createdAt).toLocaleString(dateLocale)}
+                    </p>
+                  </div>
+                ))}
               </div>
-            ))}
-          </div>
+            )}
+          </>
         )}
       </section>
 

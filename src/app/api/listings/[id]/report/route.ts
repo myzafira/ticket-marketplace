@@ -4,6 +4,7 @@ import { db } from "@/lib/db";
 import { getCurrentUser, isFullyVerified } from "@/lib/auth";
 import { getAdminEmails } from "@/lib/settings";
 import { sendEmail, escapeHtml } from "@/lib/email";
+import { isUniqueConstraintError } from "@/lib/prismaErrors";
 
 const reportSchema = z.object({
   message: z.string().min(1).max(1000),
@@ -61,9 +62,20 @@ export async function POST(
   }
 
   const { message } = parsed.data;
-  const report = await db.listingReport.create({
-    data: { listingId: id, reporterId: user.id, message },
-  });
+  let report;
+  try {
+    report = await db.listingReport.create({
+      data: { listingId: id, reporterId: user.id, message },
+    });
+  } catch (err) {
+    if (isUniqueConstraintError(err)) {
+      return NextResponse.json(
+        { error: "You already have an open report for this listing" },
+        { status: 409 }
+      );
+    }
+    throw err;
+  }
 
   const adminEmails = await getAdminEmails();
   const html = `<p><strong>${escapeHtml(user.name)}</strong> flagged listing "${escapeHtml(listing.title)}" (${escapeHtml(listing.eventName)}) as unfairly priced.</p>

@@ -18,23 +18,29 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Invalid input" }, { status: 400 });
   }
 
-  const record = await db.user.findUnique({
-    where: { id: user.id },
-    select: { emailVerifyCode: true, emailVerifyExpiresAt: true, emailVerifyAttempts: true },
+  // Atomically claim one of MAX_CODE_ATTEMPTS guesses before looking at the
+  // code. A plain read-then-increment lets concurrent requests all read the
+  // same pre-increment count and each get a free guess; a guarded updateMany
+  // re-evaluates its WHERE against the committed row at write time, so at
+  // most MAX_CODE_ATTEMPTS increments can ever succeed regardless of
+  // concurrency (same pattern as the points-balance redemption guard).
+  const claimed = await db.user.updateMany({
+    where: { id: user.id, emailVerifyAttempts: { lt: MAX_CODE_ATTEMPTS } },
+    data: { emailVerifyAttempts: { increment: 1 } },
   });
-
-  if ((record?.emailVerifyAttempts ?? 0) >= MAX_CODE_ATTEMPTS) {
+  if (claimed.count === 0) {
     return NextResponse.json(
       { error: "Too many attempts — request a new code" },
       { status: 429 }
     );
   }
 
+  const record = await db.user.findUnique({
+    where: { id: user.id },
+    select: { emailVerifyCode: true, emailVerifyExpiresAt: true },
+  });
+
   if (!isCodeValid(record?.emailVerifyCode ?? null, record?.emailVerifyExpiresAt ?? null, parsed.data.code)) {
-    await db.user.update({
-      where: { id: user.id },
-      data: { emailVerifyAttempts: { increment: 1 } },
-    });
     return NextResponse.json(
       { error: "That code is incorrect or has expired" },
       { status: 400 }
